@@ -4,9 +4,6 @@ grammar Javamm;
     package pt.up.fe.comp2024;
 }
 
-COMMENT : '/*' .*? '*/' -> skip; // Multi-line comments
-LINE_COMMENT : '//' ~[\r\n]* -> skip; // End-of-line comments
-
 EQUALS : '=';
 SEMI : ';' ;
 LCURLY : '{' ;
@@ -15,66 +12,121 @@ LPAREN : '(' ;
 RPAREN : ')' ;
 MUL : '*' ;
 ADD : '+' ;
+DIV : '/' ;
+NOT : '!' ;
 SUB : '-' ;
-DIV : '/' ; // Define DIV token
+AND : '&&' ;
+OR : '||' ;
+LESS : '<' ;
+GREATER : '>' ;
+LSQPAREN : '[' ;
+RSQPAREN : ']' ;
+COMMA : ',' ;
+MEMBERCALL : '.' ;
+LENGTH : 'length' ;
+NEW : 'new' ;
+IF : 'if' ;
+ELSE : 'else' ;
+WHILE : 'while' ;
+THIS : 'this' ;
+ELLIPSIS : '...' ;
 
 CLASS : 'class' ;
 INT : 'int' ;
-STRING : 'String' ;
-BOOLEAN : 'boolean' ;
 PUBLIC : 'public' ;
 RETURN : 'return' ;
+IMPORT : 'import' ;
+EXTENDS : 'extends' ;
+STATIC : 'static' ;
+VOID : 'void' ;
+MAIN : 'main' ;
+STRING : 'String' ;
 
-INTEGER : [0-9]+ ; // Modified to allow multi-digit integers
-ID : [a-zA-Z_$] [a-zA-Z0-9_$]* ;
+INTEGER : [0] | [1-9][0-9]* ;
+TRUE : 'true' ;
+FALSE : 'false' ;
+BOOLEAN : 'boolean';
+ID : [a-zA-Z_$][a-zA-Z_$0-9]* ;
 
+COMMENT_MULTILINE : '/*' .*? '*/' -> skip;
+COMMENT_EOL : '//' .*? '\n' -> skip;
 WS : [ \t\n\r\f]+ -> skip ;
 
-program : importDecl* classDecl  EOF;
+program
+    : importDecl* classDecl EOF
+    ;
 
-importDecl : 'import' ID ( '.' ID )* SEMI; // Modified to include SEMI
-
-classDecl : CLASS ID ('extends' ID)? LCURLY (varDecl)* (methodDecl)* RCURLY;
-
-varDecl : type ID SEMI; // Modified to include SEMI
-
-methodDecl : ('public'?)? type ID LPAREN parameters RPAREN LCURLY (varDecl)* (stmt)* returnStmt? RCURLY
-                  | ('public'?)? 'static' 'void' 'main' LPAREN 'String' '[' ']' ID RPAREN LCURLY (varDecl)* (stmt)* RCURLY;
-
-parameters : (parameter (',' parameter)*)?;
-
-parameter : type ID;
-
-returnStmt : 'return' expr SEMI?;
+importDecl
+    : IMPORT value+=ID (MEMBERCALL value+=ID)* SEMI
+    ;
 
 
-type : 'int' '[' ']' // Array type
-     | 'int' '...'   // Varargs type
-     | BOOLEAN
-     | INT
-     | STRING
-     | ID;            // User-defined type
+classDecl
+    : CLASS className=ID (EXTENDS extendClassName= ID)?
+        LCURLY
+        varDecl*
+        methodDecl*
+        RCURLY
+    ;
 
-stmt : LCURLY (stmt)* RCURLY // Block stmt
-          | 'if' LPAREN expr RPAREN stmt ('else' stmt)? // If stmt
-          | 'while' LPAREN expr RPAREN stmt // While stmt
-          | expr SEMI // expr stmt
-          | ID EQUALS expr SEMI // Assignment stmt
-          | ID '[' expr ']' EQUALS expr SEMI // Array assignment stmt
-          ;
+varDecl
+    : type name=ID SEMI
+    ;
 
-expr : expr ('&&' | '<' | ADD | SUB | MUL | DIV) expr // Binary expr
-           | expr '[' expr ']' // Array access expr
-           | expr '.' 'length' // Array length expr
-           | expr '.' ID LPAREN (expr (',' expr)*)? RPAREN // Method call expr
-           | ID LPAREN (expr (',' expr)*)? RPAREN // Method call expr without dot
-           | 'new' 'int' '[' expr ']' // New int array expr
-           | 'new' ID LPAREN RPAREN // New object expr
-           | '!' expr // Logical negation expr
-           | LPAREN expr RPAREN // Parenthesized expr
-           | '[' (expr (',' expr)*)? ']' // Array literal expr
-           | INTEGER // Integer literal expr
-           | 'true' // Boolean literal expr (true)
-           | 'false' // Boolean literal expr (false)
-           | ID // Identifier expr
-           | 'this'; // "this" expr
+type
+    : type LSQPAREN RSQPAREN #Array //
+    | INT ELLIPSIS #Ellipsis //
+    | BOOLEAN #Boolean //
+    | INT #Integer //
+    | STRING #String //
+    | ID #Id //
+    ;
+
+methodDecl locals[boolean isPublic=false]
+    : (PUBLIC {$isPublic=true;})?
+        type name=ID
+        LPAREN param RPAREN
+        LCURLY varDecl* stmt* RETURN expr SEMI RCURLY
+    | (PUBLIC {$isPublic=true;})?
+       STATIC VOID MAIN
+       LPAREN STRING LSQPAREN RSQPAREN ID RPAREN
+       LCURLY varDecl* stmt* RCURLY
+    ;
+
+param
+    : (type name=ID (COMMA type name=ID)*)?
+    ;
+
+stmt
+    : expr SEMI #ExprStmt //
+    | LCURLY stmt* RCURLY #StmtScope //
+    | IF LPAREN expr RPAREN stmt ELSE stmt #IfElseStmt //
+    | WHILE LPAREN expr RPAREN stmt #WhileStmt //
+    | var= ID EQUALS expr SEMI #AssignStmt //
+    | var= ID LSQPAREN expr RSQPAREN EQUALS expr SEMI #ArrayAssign //
+    | RETURN expr SEMI #ReturnStmt
+    ;
+
+expr
+    : LPAREN expr RPAREN #Paren //
+    | LSQPAREN (expr (COMMA expr)*)? RSQPAREN #ArrayInit //
+    | expr LSQPAREN expr RSQPAREN #ArrayAccess //
+    | expr MEMBERCALL LENGTH #Length //
+    | expr MEMBERCALL name= ID LPAREN (expr (COMMA expr)*)? RPAREN #FunctionCall //
+    | expr LPAREN expr RPAREN #MemberCall //
+    | value= THIS #Object //
+    | value= NOT expr #Negation //
+    | NEW INT LSQPAREN expr RSQPAREN #NewArray //
+    | NEW name= ID LPAREN RPAREN #NewClass //
+    | expr op= (MUL | DIV) expr #BinaryOp //
+    | expr op= (ADD | SUB) expr #BinaryOp //
+    | expr op= (LESS | GREATER) expr #BinaryOp //
+    | expr op= AND expr #BinaryOp //
+    | expr op= OR expr #BinaryOp //
+    | value= INTEGER #IntegerLiteral //
+    | value= (TRUE | FALSE) #BooleanLiteral //
+    | name= ID #VarRefExpr //
+    ;
+
+
+
