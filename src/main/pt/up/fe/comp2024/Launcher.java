@@ -9,6 +9,8 @@ import pt.up.fe.comp2024.analysis.JmmAnalysisImpl;
 import pt.up.fe.comp2024.backend.JasminBackendImpl;
 import pt.up.fe.comp2024.optimization.JmmOptimizationImpl;
 import pt.up.fe.comp2024.parser.JmmParserImpl;
+import pt.up.fe.comp2024.symboltable.JmmSymbolTable;
+import pt.up.fe.comp2024.symboltable.JmmSymbolTableBuilder;
 import pt.up.fe.specs.util.SpecsIo;
 import pt.up.fe.specs.util.SpecsSystem;
 
@@ -31,6 +33,9 @@ public class Launcher {
         JmmParserImpl parser = new JmmParserImpl();
         JmmParserResult parserResult = parser.parse(code, config);
         TestUtils.noErrors(parserResult.getReports());
+
+
+        JmmSymbolTable symbolTable = JmmSymbolTableBuilder.build(parserResult.getRootNode());
 
         // Print AST
         //System.out.println(parserResult.getRootNode().toTree());

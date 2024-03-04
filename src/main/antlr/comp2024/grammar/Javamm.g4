@@ -62,7 +62,7 @@ importDecl
 
 
 classDecl
-    : CLASS className=ID (EXTENDS extendClassName= ID)?
+    : CLASS className=ID (EXTENDS extendClassName=ID)?
         LCURLY
         varDecl*
         methodDecl*
@@ -79,22 +79,19 @@ type
     | BOOLEAN #Boolean //
     | INT #Integer //
     | STRING #String //
-    | ID #Id //
+    | name=ID #Id //
+    | VOID #Void //
     ;
 
 methodDecl locals[boolean isPublic=false]
-    : (PUBLIC {$isPublic=true;})?
-        type name=ID
-        LPAREN param RPAREN
-        LCURLY varDecl* stmt* RETURN expr SEMI RCURLY
-    | (PUBLIC {$isPublic=true;})?
-       STATIC VOID MAIN
-       LPAREN STRING LSQPAREN RSQPAREN ID RPAREN
-       LCURLY varDecl* stmt* RCURLY
+    : (PUBLIC {$isPublic=true;})? STATIC?
+        type name=(ID | MAIN)
+        LPAREN (param (COMMA param)*)? RPAREN
+        LCURLY varDecl* stmt* RCURLY
     ;
 
 param
-    : (type name=ID (COMMA type name=ID)*)?
+    : type name=ID
     ;
 
 stmt
@@ -112,12 +109,12 @@ expr
     | LSQPAREN (expr (COMMA expr)*)? RSQPAREN #ArrayInit //
     | expr LSQPAREN expr RSQPAREN #ArrayAccess //
     | expr MEMBERCALL LENGTH #Length //
-    | expr MEMBERCALL name= ID LPAREN (expr (COMMA expr)*)? RPAREN #FunctionCall //
+    | expr MEMBERCALL name=ID LPAREN (expr (COMMA expr)*)? RPAREN #FunctionCall //
     | expr LPAREN expr RPAREN #MemberCall //
     | value= THIS #Object //
     | value= NOT expr #Negation //
     | NEW INT LSQPAREN expr RSQPAREN #NewArray //
-    | NEW name= ID LPAREN RPAREN #NewClass //
+    | NEW name=ID LPAREN RPAREN #NewClass //
     | expr op= (MUL | DIV) expr #BinaryOp //
     | expr op= (ADD | SUB) expr #BinaryOp //
     | expr op= (LESS | GREATER) expr #BinaryOp //
@@ -125,7 +122,7 @@ expr
     | expr op= OR expr #BinaryOp //
     | value= INTEGER #IntegerLiteral //
     | value= (TRUE | FALSE) #BooleanLiteral //
-    | name= ID #VarRefExpr //
+    | name=ID #VarRefExpr //
     ;
 
 
