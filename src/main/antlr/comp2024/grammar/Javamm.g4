@@ -39,7 +39,6 @@ IMPORT : 'import' ;
 EXTENDS : 'extends' ;
 STATIC : 'static' ;
 VOID : 'void' ;
-MAIN : 'main' ;
 STRING : 'String' ;
 
 INTEGER : [0] | [1-9][0-9]* ;
@@ -71,7 +70,6 @@ classDecl
 
 varDecl
     : type name=ID SEMI
-    | type name=MAIN SEMI
     ;
 
 type
@@ -86,7 +84,7 @@ type
 
 methodDecl locals[boolean isPublic=false]
     : (PUBLIC {$isPublic=true;})? STATIC?
-        type name=(ID | MAIN)
+        type name=ID
         LPAREN (param (COMMA param)*)? RPAREN
         LCURLY varDecl* stmt* RCURLY
     ;
