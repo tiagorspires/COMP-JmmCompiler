@@ -58,6 +58,8 @@ public class JmmSymbolTableBuilder {
             case "Array" -> new Type(getType(node.getJmmChild(0)).getName(), true);
             case "String" -> new Type("String", false);
             case "Id" -> new Type(node.get("name"), false);
+            case "Ellipsis" -> new Type("int...", false);
+
             default -> throw new RuntimeException("Unknown type: " + node.getKind());
         };
     }
