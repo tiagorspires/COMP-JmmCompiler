@@ -28,10 +28,10 @@ public class TypeUtils {
         var kind = Kind.fromString(expr.getKind());
         //System.out.print(" VisitVarRef3:" + kind  + "\n");
         Type type = switch (kind) {
-            case BINARY_EXPR -> getBinExprType(expr);
+            case BINARY_OP -> getBinExprType(expr);
             case VAR_REF_EXPR -> getVarExprType(expr, table);
             case INTEGER_LITERAL -> new Type(INT_TYPE_NAME, false);
-            //case BOOLEAN_LITERAL -> new Type("boolean", false);
+            case BOOLEAN_LITERAL -> new Type("boolean", false);
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
         };
         //System.out.print(" VisitVarRef4:" + type  + "\n");
@@ -40,11 +40,12 @@ public class TypeUtils {
 
     private static Type getBinExprType(JmmNode binaryExpr) {
         // TODO: Simple implementation that needs to be expanded
-
+        //System.out.print(" Binary expr:"+binaryExpr+"\n");
         String operator = binaryExpr.get("op");
 
         return switch (operator) {
-            case "+", "*" -> new Type(INT_TYPE_NAME, false);
+            case "+", "*", "-", "/" -> new Type(INT_TYPE_NAME, false);
+            case "<", ">", "&&", "||" -> new Type("boolean", false);
             default ->
                     throw new RuntimeException("Unknown operator '" + operator + "' of expression '" + binaryExpr + "'");
         };
@@ -55,7 +56,7 @@ public class TypeUtils {
         // TODO: Simple implementation that needs to be expanded
         String methodName = varRefExpr.getAncestor(METHOD_DECL).map(method -> method.get("name")).orElseThrow();
         Type retType = table.getReturnType(methodName);
-        System.out.print(" E agora este?:" + retType + "\n");
+        //System.out.print(" E agora este?:" + varRefExpr + "\n");
         if(retType.getName().equals("boolean")) {
             return new Type("boolean", false);
         }
