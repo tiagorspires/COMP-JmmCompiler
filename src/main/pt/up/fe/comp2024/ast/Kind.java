@@ -11,12 +11,18 @@ public enum Kind {
     CLASS_DECL,
     VAR_DECL,
     TYPE,
+    STATIC,
     METHOD_DECL,
     PARAM,
     ASSIGN_STMT,
     RETURN_STMT,
     BINARY_EXPR,
     INTEGER_LITERAL,
+    BOOLEAN_LITERAL,
+    FIELD,
+    INTEGER,
+    BOOLEAN,
+    VOID,
     VAR_REF_EXPR;
 
 

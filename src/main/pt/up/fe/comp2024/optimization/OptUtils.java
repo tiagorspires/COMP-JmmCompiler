@@ -4,6 +4,7 @@ import org.specs.comp.ollir.Instruction;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp2024.ast.NodeUtils;
+import pt.up.fe.comp2024.symboltable.JmmSymbolTableBuilder;
 import pt.up.fe.specs.util.exceptions.NotImplementedException;
 
 import java.util.List;
@@ -30,6 +31,7 @@ public class OptUtils {
         return tempNumber;
     }
 
+
     public static String toOllirType(JmmNode typeNode) {
 
         TYPE.checkOrThrow(typeNode);
@@ -47,6 +49,10 @@ public class OptUtils {
 
         String type = "." + switch (typeName) {
             case "int" -> "i32";
+            //case "bool" -> "bool";
+            case "boolean" -> "bool";
+            case "String" -> "String";
+            case "void" -> "V";
             default -> throw new NotImplementedException(typeName);
         };
 
