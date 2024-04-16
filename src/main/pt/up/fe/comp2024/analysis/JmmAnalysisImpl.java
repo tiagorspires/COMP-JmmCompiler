@@ -7,8 +7,7 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.parser.JmmParserResult;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
-import pt.up.fe.comp2024.analysis.passes.TypeCheck;
-import pt.up.fe.comp2024.analysis.passes.UndeclaredVariable;
+import pt.up.fe.comp2024.analysis.passes.*;
 import pt.up.fe.comp2024.symboltable.JmmSymbolTableBuilder;
 
 import java.util.ArrayList;
@@ -21,8 +20,7 @@ public class JmmAnalysisImpl implements JmmAnalysis {
 
     public JmmAnalysisImpl() {
 
-        this.analysisPasses = List.of(new UndeclaredVariable());
-
+        this.analysisPasses = List.of(new UndeclaredVariable(), new TypeCheck());
     }
 
     @Override
@@ -32,15 +30,7 @@ public class JmmAnalysisImpl implements JmmAnalysis {
 
         SymbolTable table = JmmSymbolTableBuilder.build(rootNode);
 
-        TypeCheck typeCheck = new TypeCheck();
-
-        typeCheck.visit(rootNode, table);
-
-        System.out.println(typeCheck.getReports());
-
-        List<Report> reports = new ArrayList<>(typeCheck.getReports());
-
-        System.out.println(reports);
+        List<Report> reports = new ArrayList<>();
 
         // Visit all nodes in the AST
         for (var analysisPass : analysisPasses) {
