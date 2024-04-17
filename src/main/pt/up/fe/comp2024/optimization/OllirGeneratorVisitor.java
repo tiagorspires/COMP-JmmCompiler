@@ -141,6 +141,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
 
     private String visitMethodDecl(JmmNode node, Void unused) {
+//        System.out.println(" Aqui:"+node.getChildren());
+//        System.out.println(" Aqui2:"+table.getMethods());
+
         StringBuilder code = new StringBuilder(".method ");
 
         boolean isPublic = NodeUtils.getBooleanAttribute(node, "isPublic", "false");
@@ -212,7 +215,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
                 if(FUNCTION_CALL.check(funcCall)) {
                     var childCode = exprVisitor.visit(funcCall);
                     //System.out.print(" function call:"+childCode.getCode()+"\n");
-                    code.append(childCode);
+                    code.append(childCode.getCode());
                 }
             }
         } else {
@@ -323,12 +326,13 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             code.append(visit(node.getChild(0)));
         } else {
             code.append(node.get("name"));
+            //if(node.getChild(0).equals("Id"))
             code.append(visit(node.getChild(0)));
         }
 
         code.append(END_STMT);
 
-        //System.out.println(code);
+        System.out.println(code);
         return code.toString();
     }
 

@@ -57,6 +57,8 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         var rhs = visit(node.getJmmChild(1));
 
         StringBuilder computation = new StringBuilder();
+//        System.out.println(" lhs:"+lhs);
+//        System.out.println(" rhs:"+rhs);
 
         // code to compute the children
         computation.append(lhs.getComputation());
@@ -98,18 +100,27 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     }
 
     private OllirExprResult visitFunctionCall(JmmNode node, Void unused) {
+        System.out.println(node);
+        StringBuilder code = new StringBuilder();
 
-        StringBuilder code = new StringBuilder("invokestatic");
+        code.append("invokestatic");
 
         code.append("(");
 
-        code.append((node.getChild(0).get("name")));
+        if(node.getChild(0).hasAttribute("name")) {
+            code.append((node.getChild(0).get("name")));
+        } else {
+            code.append("this.").append(table.getClassName());
+        }
 
         code.append(", ");
 
-        code.append("\""+node.get("name")+"\", ");
+        code.append("\""+node.get("name")+"\"");
 
-        code.append(visit(node.getChild(1)).getCode());
+        if(node.getChildren().size()>1) {
+            code.append(", ");
+            code.append(visit(node.getChild(1)).getCode());
+        }
 
         code.append(")");
 

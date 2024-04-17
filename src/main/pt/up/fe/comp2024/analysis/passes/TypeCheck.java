@@ -1,6 +1,7 @@
 package pt.up.fe.comp2024.analysis.passes;
 
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
@@ -25,7 +26,7 @@ public class TypeCheck extends AnalysisVisitor {
         addVisit("ArrayAccess", this::visitArray);
         addVisit("ArrayInit", this::visitArrayInit);
         addVisit("WhileStmt", this::visitWhileStmt);
-       // addVisit("AssignStmt", this::visitAssignStmt);
+        addVisit("AssignStmt", this::visitAssignStmt);
         addVisit("FunctionCall", this::visitFunctionCall);
         addVisit("BinaryOp", this::visitBinaryOp);
         addVisit("IfElseStmt", this::visitIfElseStmt);
@@ -297,6 +298,144 @@ public class TypeCheck extends AnalysisVisitor {
     }
 
     */
+
+    private Void visitAssignStmt(JmmNode assignStmt, SymbolTable table) {
+//        System.out.println(assignStmt);
+        SpecsCheck.checkNotNull(method, () -> "Expected current method to be set");
+//        System.out.println(assignStmt.getChild(0));
+
+        if(assignStmt.getNumChildren() > 0 && (Objects.equals(assignStmt.getChild(0).getKind(), "IntegerLiteral"))) {
+            String leftHandSide = assignStmt.get("var");
+            String rightHandSide = assignStmt.getChild(0).get("value");
+//            System.out.println(leftHandSide);
+//            System.out.println(rightHandSide);
+            var Type = new Type("Integer", false);
+
+
+            String rightType = Type.getName();
+            String leftType = getVariableType(leftHandSide, assignStmt.getParent().getChildren());
+//            System.out.println(" rightType:"+rightType);
+//            System.out.println(" leftType:"+leftType);
+
+            if (leftType != null && rightType != null && !leftType.equals(rightType)) {
+                List<String> imports = table.getImports();
+                String extendsClass = table.getSuper();
+
+                if(!(imports.contains(rightType) && imports.contains(leftType)) || (extendsClass != null && !Objects.equals(extendsClass, rightType) && !Objects.equals(extendsClass, leftType))) {
+                    addReport(Report.newError(
+                            Stage.SEMANTIC,
+                            NodeUtils.getLine(assignStmt),
+                            NodeUtils.getColumn(assignStmt),
+                            "Type mismatch: cannot convert from " + rightType + " to " + leftType,
+                            null)
+                    );
+                }
+            }
+        }
+
+        if(assignStmt.getNumChildren() > 0 && (Objects.equals(assignStmt.getChild(0).getKind(), "BooleanLiteral"))) {
+            String leftHandSide = assignStmt.get("var");
+            String rightHandSide = assignStmt.getChild(0).get("value");
+//            System.out.println(leftHandSide);
+//            System.out.println(rightHandSide);
+            var Type = new Type("Boolean", false);
+
+
+            String rightType = Type.getName();
+            String leftType = getVariableType(leftHandSide, assignStmt.getParent().getChildren());
+//            System.out.println(" leftType:"+leftType);
+
+            if (leftType != null && rightType != null && !leftType.equals(rightType)) {
+                List<String> imports = table.getImports();
+                String extendsClass = table.getSuper();
+
+                if(!(imports.contains(rightType) && imports.contains(leftType)) || (extendsClass != null && !Objects.equals(extendsClass, rightType) && !Objects.equals(extendsClass, leftType))) {
+                    addReport(Report.newError(
+                            Stage.SEMANTIC,
+                            NodeUtils.getLine(assignStmt),
+                            NodeUtils.getColumn(assignStmt),
+                            "Type mismatch: cannot convert from " + rightType + " to " + leftType,
+                            null)
+                    );
+                }
+            }
+        }
+
+        // check if the assigned node has a valid right hand side that is a variable reference
+        if (assignStmt.getNumChildren() > 0 && (Objects.equals(assignStmt.getChild(0).getKind(), "VarRefExpr"))) {
+            String leftHandSide = assignStmt.get("var");
+            String rightHandSide = assignStmt.getChild(0).get("name");
+
+            // get type from left side and right side
+            String leftType = getVariableType(leftHandSide, assignStmt.getParent().getChildren());
+            String rightType = getVariableType(rightHandSide, assignStmt.getParent().getChildren());
+//            System.out.println(" tipoLeft:"+leftType);
+//            System.out.println(" tipoRight:"+rightType);
+
+
+            // check if the types are the same
+            if (leftType != null && rightType != null && !leftType.equals(rightType)) {
+                List<String> imports = table.getImports();
+                String extendsClass = table.getSuper();
+                List<String> modifiedImports = new ArrayList<>();
+                boolean extend = false;
+
+//                System.out.println(" super:"+extendsClass);
+//                System.out.println(" imports:"+imports);
+                for (String importString : imports) {
+                    String[] elements = importString.substring(1, importString.length() - 1).split(",");
+                    for (String element : elements) {
+                        modifiedImports.add(element.trim());
+                    }
+                }
+                for (String importString : modifiedImports) {
+                    if(extendsClass != null && extendsClass.equals(importString)){
+                        extend = true;
+                    }
+                }
+//                System.out.println(" modified imports"+modifiedImports);
+//                System.out.println(" does it extend?:"+extend);
+//                System.out.println(" CONTEM?:"+imports.contains(rightType));
+                if((!extend) || (modifiedImports.contains(rightType) && modifiedImports.contains(leftType))) {
+                    if (!(modifiedImports.contains(rightType) && modifiedImports.contains(leftType)) || (extendsClass != null && !Objects.equals(extendsClass, rightType) && !Objects.equals(extendsClass, leftType))) {
+                        addReport(Report.newError(
+                                Stage.SEMANTIC,
+                                NodeUtils.getLine(assignStmt),
+                                NodeUtils.getColumn(assignStmt),
+                                "Type mismatch: cannot convert from " + rightType + " to " + leftType,
+                                null)
+                        );
+                    }
+                }
+            }
+
+        }
+        return null;
+    }
+
+    private String getVariableType(String variable, List<JmmNode> nodes) {
+//        System.out.println(" variable:"+variable);
+        for (JmmNode decl : nodes) {
+//            System.out.println(" getVariableType:"+decl);
+//            System.out.println(" getdeclParent:"+decl.getChildren());
+            if (Objects.equals(decl.getKind(), "VarDecl") && decl.get("name").equals(variable)) {
+                System.out.println(decl.getChild(0));
+                if(decl.getChild(0).toString().equals("Boolean")) {
+                    return decl.getChild(0).toString();
+                }
+                if(decl.getChild(0).toString().equals("Integer")) {
+                    return decl.getChild(0).toString();
+                }
+                return decl.getChild(0).get("name");
+            }
+//            if (Objects.equals(decl.getKind(), "VarDecl") && decl.get("name").equals(variable) && decl.getChild(0).equals("Boolean")) {
+//                System.out.println(decl.getChild(0));
+//                return decl.getChild(0).toString();
+//            }
+        }
+        return null;
+    }
+
     ////////////////////////////////////
 
     private Void visitFunctionCall(JmmNode methodCall, SymbolTable table) {
