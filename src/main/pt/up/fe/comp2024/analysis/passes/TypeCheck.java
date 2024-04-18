@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static pt.up.fe.comp2024.ast.Kind.FUNCTION_CALL;
 import static pt.up.fe.comp2024.ast.Kind.METHOD_DECL;
 
 public class TypeCheck extends AnalysisVisitor {
@@ -419,7 +420,7 @@ public class TypeCheck extends AnalysisVisitor {
 //            System.out.println(" getVariableType:"+decl);
 //            System.out.println(" getdeclParent:"+decl.getChildren());
             if (Objects.equals(decl.getKind(), "VarDecl") && decl.get("name").equals(variable)) {
-                System.out.println(decl.getChild(0));
+//                System.out.println(decl.getChild(0));
                 if(decl.getChild(0).toString().equals("Boolean")) {
                     return decl.getChild(0).toString();
                 }
@@ -439,14 +440,42 @@ public class TypeCheck extends AnalysisVisitor {
     ////////////////////////////////////
 
     private Void visitFunctionCall(JmmNode methodCall, SymbolTable table) {
+//        System.out.println(" methodCall:"+methodCall);
+        //System.out.println(" methodCall name:"+methodCall.getChild(0).get("name"));
         SpecsCheck.checkNotNull(method, () -> "Expected current method to be set");
 
         String methodName = methodCall.get("name");
         int importsSize = table.getImports().size();
 
+//        System.out.println(" methodName:"+methodName);
+//        System.out.println(" imports:"+table.getImports());
+//
+//        List<String> imports = table.getImports();
+//        List<String> modifiedImports = new ArrayList<>();
+//        boolean imported = false;
+//
+//        for (String importString : imports) {
+//            String[] elements = importString.substring(1, importString.length() - 1).split(",");
+//            for (String element : elements) {
+//                modifiedImports.add(element.trim());
+//            }
+//        }
+//        for (String importString : modifiedImports) {
+//            if(methodCall.getChild(0).get("name").equals(importString)){
+//                imported = true;
+//            }
+//        }
+//
+//        System.out.println(" imported?:"+imported);
+//
+//        if((!imported) || (!isMethodDeclared(methodCall, methodName) && importsSize == 0)) {
+//            addUndeclaredMethodError(methodCall, methodName);
+//        }
+
         if (!isMethodDeclared(methodCall, methodName) && importsSize == 0) {
             addUndeclaredMethodError(methodCall, methodName);
         }
+
 
         checkVarargsParameter(methodCall);
 
@@ -455,6 +484,7 @@ public class TypeCheck extends AnalysisVisitor {
 
     private boolean isMethodDeclared(JmmNode methodCall, String methodName) {
         for (JmmNode node : methodCall.getParent().getParent().getParent().getChildren()) {
+            //System.out.println(" node:"+node);
             if (Objects.equals(node.getKind(), "MethodDecl") && Objects.equals(node.get("name"), methodName)) {
                 return true;
             }
@@ -526,9 +556,15 @@ public class TypeCheck extends AnalysisVisitor {
 
         JmmNode left = binaryOp.getChild(0);
         JmmNode right = binaryOp.getChild(1);
+        System.out.println(" left:"+left.getKind());
+        System.out.println(" right:"+right.getKind());
         String operator = binaryOp.get("op");
 
         boolean isArithmeticOperator = Objects.equals(operator, "+") || Objects.equals(operator, "-") || Objects.equals(operator, "/") || Objects.equals(operator, "*") || Objects.equals(operator, ">") || Objects.equals(operator, "<");
+
+        if(left.getKind().equals("FunctionCall") || right.getKind().equals("FunctionCall")) {
+            return null;
+        }
 
         if (isArithmeticOperator && (!isIntegerLiteral(left) || !isIntegerLiteral(right))) {
             addArithmeticTypeError(binaryOp, left, right);
