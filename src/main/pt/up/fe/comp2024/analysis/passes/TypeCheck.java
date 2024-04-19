@@ -9,7 +9,6 @@ import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
 
-import java.util.Objects;
 
 public class TypeCheck extends AnalysisVisitor {
 
@@ -99,44 +98,6 @@ public class TypeCheck extends AnalysisVisitor {
     }
 
 
-
-    private static class TypeAndArray {
-        private final String type;
-        private final boolean array;
-
-        public TypeAndArray(String type, boolean array) {
-            this.type = type;
-            this.array = array;
-        }
-
-        public String getType() {
-            return type;
-        }
-
-        public boolean isArray() {
-            return array;
-        }
-    }
-
-    private TypeAndArray findTypeAndArray(String variable, JmmNode parentNode) {
-        for (JmmNode decl : parentNode.getChildren()) {
-            if (Objects.equals(decl.getKind(), "VarDecl") && decl.get("name").equals(variable)) {
-                String type = null;
-                boolean array = false;
-                if (Objects.equals(decl.getChild(0).getKind(), "Array")) {
-                    array = true;
-                    type = decl.getChild(0).getChild(0).getKind();
-                } else {
-                    type = decl.getChild(0).getKind();
-                }
-                return new TypeAndArray(type, array);
-            }
-        }
-        return null; // Variable declaration not found
-    }
-
-
-    //////////////////////////////////////
 
     private Void visitWhileStmt(JmmNode whileNode, SymbolTable table) {
         TypeGetter typeCheck = new TypeGetter(method);
@@ -247,7 +208,6 @@ public class TypeCheck extends AnalysisVisitor {
 
         return null;
     }
-
 
 
 

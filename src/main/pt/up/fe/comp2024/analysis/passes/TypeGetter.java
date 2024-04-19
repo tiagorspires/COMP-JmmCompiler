@@ -18,7 +18,6 @@ public class TypeGetter extends AJmmVisitor<SymbolTable, Type> {
     public final static Type INT = new Type("int",false);
     public final static Type BOOL = new Type("boolean",false);
     public final static Type ANY = new Type("any", false);
-    public final static Type varArgs = new Type("int...",true);
     private final String methodName;
 
 
