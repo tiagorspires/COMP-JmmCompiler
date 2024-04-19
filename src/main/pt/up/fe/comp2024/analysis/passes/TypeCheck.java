@@ -530,6 +530,16 @@ public class TypeCheck extends AnalysisVisitor {
                         null)
                 );
             }
+
+            if (expr.getName().equals(table.getClassName()) && table.getSuper() == null){
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(assignStmt),
+                        NodeUtils.getColumn(assignStmt),
+                        "Variable and expression must have the same type",
+                        null)
+                );
+            }
         }
     }
 
