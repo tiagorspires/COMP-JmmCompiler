@@ -147,7 +147,13 @@ public class TypeGetter extends AJmmVisitor<SymbolTable, Type> {
             return a.get().getType();
         }
 
-        Optional<String> b = table.getImports().stream().filter((x) -> x.equals(varName)).findFirst();
+        Optional<String> b = table.getImports().stream()
+                .map((x) -> x.substring(1,x.length() - 1))
+                .filter((x) -> x.equals(varName)).findFirst();
+
+        System.out.println(table.getImports());
+        System.out.println(varName);
+        System.out.println(b);
 
         if (b.isPresent()){
             return new Type(b.get(),false);
@@ -236,7 +242,6 @@ public class TypeGetter extends AJmmVisitor<SymbolTable, Type> {
                     }
                 }else {
                     for (int i = 1; i < jmmNode.getNumChildren(); i++) {
-                        System.out.println(visit(jmmNode.getJmmChild(i), table));
                         if (!visit(jmmNode.getJmmChild(i), table).equals(INT)) {
                             var message = "Argument " + i + " of method " + jmmNode.get("name") + " is of the wrong type";
                             reports.add(Report.newError(
@@ -253,7 +258,7 @@ public class TypeGetter extends AJmmVisitor<SymbolTable, Type> {
             } else {
                 System.out.println("here1");
                 for (int i = 1; i < jmmNode.getNumChildren(); i++) {
-                    if (!visit(jmmNode.getJmmChild(i), table).equals(variables.get(i - 1))) {
+                    if (!visit(jmmNode.getJmmChild(i), table).equals(variables.get(i - 1).getType())) {
                         var message = "Argument " + i + " of method " + jmmNode.get("name") + " is of the wrong type";
                         reports.add(Report.newError(
                                 Stage.SEMANTIC,
