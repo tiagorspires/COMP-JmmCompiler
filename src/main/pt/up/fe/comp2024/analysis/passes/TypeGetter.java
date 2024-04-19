@@ -223,7 +223,7 @@ public class TypeGetter extends AJmmVisitor<SymbolTable, Type> {
 
             var variables = table.getParameters(jmmNode.get("name"));
 
-            if (variables.get(0).getType().equals(new Type("int",true)) && jmmNode.getNumChildren() != variables.size() + 1){
+            if (!variables.isEmpty() && variables.get(0).getType().equals(new Type("int",true)) && jmmNode.getNumChildren() != variables.size() + 1){
                 if (jmmNode.getNumChildren() == 2){
                     if (!visit(jmmNode.getJmmChild(1)).equals(new Type("int", true))){
                         reports.add(Report.newError(
