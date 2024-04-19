@@ -123,45 +123,16 @@ public class JasminGenerator {
 
     private String putFieldInstruction(PutFieldInstruction putFieldInstruction) {
         var code = new StringBuilder();
-        /*var lhs = putFieldInstruction.getOperands();
-
-        *//*if (!(lhs instanceof Operand)) {
-            throw new NotImplementedException(lhs.getClass());
-        }*//*
-
-        var operand = (Operand) lhs;
-        var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();*/
         String type = "";
         type = this.getType(putFieldInstruction.getField().getType());
-
-        /*String load= "";
-        switch (putFieldInstruction.getOperands().get(0).getType().getTypeOfElement().name()){
-            case "THIS":
-                load = "aload_0";
-                break;
-        }*/
         code.append("aload 0").append(NL).append(generators.apply(putFieldInstruction.getValue())).append("putfield ").append(ollirResult.getOllirClass().getClassName()).append("/").append(putFieldInstruction.getField().getName()).append(" ").append(type).append(NL);
         return code.toString();
     }
 
     private String getFieldInstruction(GetFieldInstruction getFieldInstruction) {
         var code = new StringBuilder();
-        /*var lhs = getFieldInstruction.getOperands();
-
-        *//*if (!(lhs instanceof Operand)) {
-            throw new NotImplementedException(lhs.getClass());
-        }*//*
-
-        var operand = (Operand) lhs;
-        var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();*/
         String type = "";
         type = this.getType(getFieldInstruction.getField().getType());
-        /*String load= "";
-        switch (getFieldInstruction.getOperands().get(0).getType().getTypeOfElement().name()){
-            case "THIS":
-                load = "aload_0";
-                break;
-        }*/
         code.append("aload 0").append(NL).append("getfield ").append(ollirResult.getOllirClass().getClassName()).append("/").append(getFieldInstruction.getField().getName()).append(" ").append(type).append(NL);
         return code.toString();
     }
@@ -248,17 +219,6 @@ public class JasminGenerator {
         // generate code for all other methods
         for (var method : ollirResult.getOllirClass().getMethods()) {
 
-            /*code.append(".method ");
-            if(method.isFinalMethod()){
-                code.append("final ");
-            }
-            else if(method.isStaticMethod()){
-                code.append("static ");
-            }
-            else{
-                code.append("public ");
-            }
-            code.append(method.getMethodName()).append("(").append(generateParam(method.getParams())).append(")").append(method.getReturnType());*/
             // Ignore constructor, since there is always one constructor
             // that receives no arguments, and has been already added
             // previously
@@ -370,7 +330,9 @@ public class JasminGenerator {
     private String generateOperand(Operand operand) {
         // get register
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
-
+        if(operand.getType().getTypeOfElement().toString().equals("OBJECTREF")){
+            return "aload " + reg + NL;
+        }
         return "iload " + reg + NL;
     }
 
