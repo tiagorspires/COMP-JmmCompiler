@@ -5,6 +5,7 @@ import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 
 import static pt.up.fe.comp2024.ast.Kind.METHOD_DECL;
+import static pt.up.fe.comp2024.ast.Kind.NEW_CLASS;
 
 public class TypeUtils {
 
@@ -32,6 +33,8 @@ public class TypeUtils {
             case VAR_REF_EXPR -> getVarExprType(expr, table);
             case INTEGER_LITERAL -> new Type(INT_TYPE_NAME, false);
             case BOOLEAN_LITERAL -> new Type("boolean", false);
+            case NEW_CLASS -> new Type(expr.get("name"), false);
+            case FUNCTION_CALL -> getVarExprType(expr, table);
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
         };
         //System.out.print(" VisitVarRef4:" + type  + "\n");

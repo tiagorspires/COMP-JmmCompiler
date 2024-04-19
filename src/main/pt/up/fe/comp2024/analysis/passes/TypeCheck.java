@@ -556,8 +556,8 @@ public class TypeCheck extends AnalysisVisitor {
 
         JmmNode left = binaryOp.getChild(0);
         JmmNode right = binaryOp.getChild(1);
-        System.out.println(" left:"+left.getKind());
-        System.out.println(" right:"+right.getKind());
+//        System.out.println(" left:"+left.getKind());
+//        System.out.println(" right:"+right.getKind());
         String operator = binaryOp.get("op");
 
         boolean isArithmeticOperator = Objects.equals(operator, "+") || Objects.equals(operator, "-") || Objects.equals(operator, "/") || Objects.equals(operator, "*") || Objects.equals(operator, ">") || Objects.equals(operator, "<");

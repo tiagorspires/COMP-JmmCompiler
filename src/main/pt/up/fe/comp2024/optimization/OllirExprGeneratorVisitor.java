@@ -31,7 +31,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         addVisit(INTEGER_LITERAL, this::visitInteger);
         addVisit(BOOLEAN_LITERAL, this::visitBoolean);
         addVisit(FUNCTION_CALL, this::visitFunctionCall);
-        addVisit("NewClass", this::visitNewClass);
+        addVisit(NEW_CLASS, this::visitNewClass);
 
         setDefaultVisit(this::defaultVisit);
     }
@@ -107,11 +107,12 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
     private OllirExprResult visitFunctionCall(JmmNode node, Void unused) {
         //System.out.println(" ENTRAS AQUI?");
-        System.out.println(" node:"+node);
-        System.out.println(" a:"+node.getChildren());
-        System.out.println(" metodos:"+table.getMethods());
-        System.out.println(" Parent:"+node.getParent());
+//        System.out.println(" node:"+node);
+//        System.out.println(" a:"+node.getChildren());
+//        System.out.println(" metodos:"+table.getMethods());
+//        System.out.println(" Parent:"+node.getParent());
 //        System.out.println(" isto:"+table.getMethods().get(2));
+        String methodName = node.getAncestor(METHOD_DECL).map(method -> method.get("name")).orElseThrow();
         StringBuilder computation = new StringBuilder();
         Type retType;
         String temp = "";
@@ -122,10 +123,10 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             retType = new Type("void", false);
         }
 
-        System.out.println(" b:"+table.getReturnType(node.get("name")));
+//        System.out.println(" b:"+table.getReturnType(node.get("name")));
 
         String code = "";
-        if(node.getParent().getKind().equals("BinaryOp")) {
+        if(node.getParent().getKind().equals("BinaryOp") || node.getParent().getKind().equals("AssignStmt")) {
             if (retType != null) {
                 temp = OptUtils.getTemp() + OptUtils.toOllirType(retType);
             } else {
@@ -145,15 +146,23 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         if(table.getMethods().contains(node.get("name"))) {
             computation.append("invokevirtual");
-        }
-        else {
+        } else {
             computation.append("invokestatic");
         }
 
         computation.append("(");
-
+//        System.out.println(" BBBBBBBBBBBBBB:"+table.getImports().size());
+//        System.out.println(" CCCCCCCCCCCCCC:"+node.getChild(0));
         if(node.getChild(0).hasAttribute("name")) {
-            computation.append((node.getChild(0).get("name")));
+            //System.out.println(" BBBBBBBBBBBBBB:"+table.getImports().get(0).contains(node.getChild(0).get("name")));
+            for(int i = 0;i<table.getImports().size();i++) {
+                if (table.getImports().get(i).contains(node.getChild(0).get("name"))) {
+                    computation.append(node.getChild(0).get("name"));
+                } else {
+                    computation.append((node.getChild(0).get("name"))).append(".").append(table.getClassName());
+                }
+            }
+            //computation.append(node.getAncestor(VAR_DECL));
         } else {
             computation.append("this.").append(table.getClassName());
         }
@@ -161,10 +170,12 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         computation.append(", ");
 
         computation.append("\""+node.get("name")+"\"");
-
+        //System.out.println(" AAAAAAAAAAAAAA:"+node.getChildren());
         if(node.getChildren().size()>1) {
-            computation.append(", ");
-            computation.append(visit(node.getChild(1)).getCode());
+            for(int i=1; i<node.getChildren().size(); i++) {
+                computation.append(", ");
+                computation.append(visit(node.getChild(i)).getCode());
+            }
         }
 
         computation.append(")");
@@ -183,23 +194,58 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 //        System.out.println(" Code Functional call:"+code);
 //        System.out.println(" Code Functional callRet:"+codeRet);
         //System.out.print(code);
-
+        System.out.println(" FuncCall Computation:"+computation);
         return new OllirExprResult(code, computation.toString());
     }
 
     private OllirExprResult visitNewClass(JmmNode node, Void unused) {
-        System.out.println(" ENTRAS AQUI?:"+node);
-        System.out.println(" A:"+node.getChildren());
+//        System.out.println(" ENTRAS AQUI?:"+node);
+//        System.out.println(" A:"+node.getParent());
+        String methodName = node.getAncestor(METHOD_DECL).map(method -> method.get("name")).orElseThrow();
+//        System.out.println(" variaveis:"+table.getLocalVariables(methodName).get(3));
         StringBuilder computation = new StringBuilder();
-        Type retType = table.getReturnType(node.get("name"));
+        String retType = "." + node.get("name");
+        String temp = "";
         String code = "";
 
-        //String temp = OptUtils.getTemp() + OptUtils.toOllirType(retType);
+        temp = OptUtils.getTemp()  + retType;
+//        System.out.println(" temp:"+temp);
+        computation.append(temp).append(SPACE);
+
+        if(table.getMethods().contains(node.get("name"))) {
+            code = temp;
+        } else {
+            code = temp;
+        }
 
 
+        computation.append(ASSIGN).append(retType).append(SPACE);
 
+        computation.append("new(").append(node.get("name")).append(")").append(retType).append(END_STMT);
 
-        //System.out.println(code);
+        computation.append("invokespecial");
+
+        computation.append("(");
+
+        computation.append(temp);
+
+        computation.append(", ");
+
+        computation.append("\"<init>\"");
+
+        computation.append(").V");
+
+        computation.append(END_STMT);
+
+//        for(int i = 0;i<table.getLocalVariables(methodName).size();i++) {
+//            if(table.getLocalVariables(methodName).get(i).getName().equals(node.getParent().get("var"))) {
+//                computation.append(visit(table.getLocalVariables(methodName).get(i).));
+//            }
+//        }
+
+        //computation.append(node.getParent().get("var")).append(retType).append(SPACE).append(ASSIGN).append(retType).append(SPACE).append(temp);
+
+        //System.out.println(computation);
         return new OllirExprResult(code, computation.toString());
     }
 
