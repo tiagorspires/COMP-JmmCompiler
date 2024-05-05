@@ -23,7 +23,7 @@ LSQPAREN : '[' ;
 RSQPAREN : ']' ;
 COMMA : ',' ;
 MEMBERCALL : '.' ;
-LENGTH : 'length' ;
+SIZE : '.length' ;
 NEW : 'new' ;
 IF : 'if' ;
 ELSE : 'else' ;
@@ -107,7 +107,7 @@ expr
     : LPAREN expr RPAREN #Paren //
     | LSQPAREN (expr (COMMA expr)*)? RSQPAREN #ArrayInit //
     | expr LSQPAREN expr RSQPAREN #ArrayAccess //
-    | expr MEMBERCALL LENGTH #Length //
+    | expr SIZE #Length //
     | expr MEMBERCALL name=ID LPAREN (expr (COMMA expr)*)? RPAREN #FunctionCall //
     | expr LPAREN expr RPAREN #MemberCall //
     | value= THIS #Object //
