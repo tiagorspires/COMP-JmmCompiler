@@ -76,7 +76,6 @@ public class TypeGetter extends AJmmVisitor<SymbolTable, Type> {
 
     private Type visitArrayInit(JmmNode jmmNode, SymbolTable table) {
         var firstType = visit(jmmNode.getJmmChild(0),table);
-        System.out.println("fdafdda");
         for (JmmNode node: jmmNode.getChildren()){
             var type = visit(node,table);
             if (!type.equals(firstType)){
@@ -96,8 +95,6 @@ public class TypeGetter extends AJmmVisitor<SymbolTable, Type> {
 
     private Type visitNewArray(JmmNode jmmNode, SymbolTable table) {
         Type type = visit(jmmNode.getJmmChild(0),table);
-
-        System.out.println("vfsdvfdb");
 
         if (!type.equals(INT)){
             var message = "Array size must be an integer";
