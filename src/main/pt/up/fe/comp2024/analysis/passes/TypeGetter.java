@@ -76,6 +76,7 @@ public class TypeGetter extends AJmmVisitor<SymbolTable, Type> {
 
     private Type visitArrayInit(JmmNode jmmNode, SymbolTable table) {
         var firstType = visit(jmmNode.getJmmChild(0),table);
+        System.out.println("fdafdda");
         for (JmmNode node: jmmNode.getChildren()){
             var type = visit(node,table);
             if (!type.equals(firstType)){
@@ -96,6 +97,8 @@ public class TypeGetter extends AJmmVisitor<SymbolTable, Type> {
     private Type visitNewArray(JmmNode jmmNode, SymbolTable table) {
         Type type = visit(jmmNode.getJmmChild(0),table);
 
+        System.out.println("vfsdvfdb");
+
         if (!type.equals(INT)){
             var message = "Array size must be an integer";
             reports.add(Report.newError(
@@ -106,7 +109,7 @@ public class TypeGetter extends AJmmVisitor<SymbolTable, Type> {
                     null
             ));
         }
-        return type;
+        return new Type("int",true);
     }
 
     private Type visitNegation(JmmNode jmmNode, SymbolTable table) {
@@ -151,9 +154,6 @@ public class TypeGetter extends AJmmVisitor<SymbolTable, Type> {
                 .map((x) -> x.substring(1,x.length() - 1))
                 .filter((x) -> x.equals(varName)).findFirst();
 
-        System.out.println(table.getImports());
-        System.out.println(varName);
-        System.out.println(b);
 
         if (b.isPresent()){
             return new Type(b.get(),false);
@@ -256,7 +256,7 @@ public class TypeGetter extends AJmmVisitor<SymbolTable, Type> {
                     }
                 }
             } else {
-                System.out.println("here1");
+
                 for (int i = 1; i < jmmNode.getNumChildren(); i++) {
                     if (!visit(jmmNode.getJmmChild(i), table).equals(variables.get(i - 1).getType())) {
                         var message = "Argument " + i + " of method " + jmmNode.get("name") + " is of the wrong type";

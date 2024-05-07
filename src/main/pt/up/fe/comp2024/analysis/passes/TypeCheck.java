@@ -56,8 +56,7 @@ public class TypeCheck extends AnalysisVisitor {
 
     private Void visitClassDecl(JmmNode jmmNode, SymbolTable table) {
         String className = jmmNode.get("className");
-        System.out.println(className + " nome da classe");
-        System.out.println(imports + "imports");
+
         if(imports.contains(className)){
 
             addReport(Report.newError(
@@ -141,6 +140,8 @@ public class TypeCheck extends AnalysisVisitor {
         TypeGetter typeCheck = new TypeGetter(method);
 
         var variable = table.getLocalVariables(method).stream().filter((v) -> v.getName().equals(jmmNode.get("var"))).findFirst();
+
+
 
         if (!variable.isPresent()){
             variable  = table.getFields().stream().filter((v) -> v.getName().equals(jmmNode.get("var"))).findFirst();
@@ -243,10 +244,15 @@ public class TypeCheck extends AnalysisVisitor {
         }
 
         Type expr = typeCheck.visit(assignStmt.getJmmChild(0),table);
+        System.out.println(assignStmt.getJmmChild(0));
+        System.out.println(variable.get().getType().getName() + " tipo da variavel");
+        System.out.println(expr.getName() + " tipo da expressao");
+
+
 
         typeCheck.reports.forEach(this::addReport);
 
-        var var1= variable.get();
+        var var1 = variable.get();
 
         if (!var1.getType().equals(expr) && !expr.equals(TypeGetter.ANY)) {
             if (isPrimitive(var1.getType())) {
