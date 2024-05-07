@@ -184,17 +184,7 @@ public class TypeCheck extends AnalysisVisitor {
 
         var parameters = table.getParameters(this.method);
         if (this.method.equals("main")) {
-            // check if main method is static
-            if (!method.hasAttribute("static")) {
-                addReport(Report.newError(
-                        Stage.SEMANTIC,
-                        NodeUtils.getLine(method),
-                        NodeUtils.getColumn(method),
-                        "Main method must be static",
-                        null)
-                );
-            }
-            else if (method.getChildren("Param").size() != 1) {
+            if (method.getChildren("Param").size() != 1) {
                 addReport(Report.newError(
                         Stage.SEMANTIC,
                         NodeUtils.getLine(method),
