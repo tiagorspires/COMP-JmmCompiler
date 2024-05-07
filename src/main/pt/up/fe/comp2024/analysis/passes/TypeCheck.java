@@ -19,6 +19,7 @@ public class TypeCheck extends AnalysisVisitor {
     private List<String> variables = new ArrayList<>();
     private List<String> imports = new ArrayList<>();
     private List<String> methods = new ArrayList<>();
+    private List<String> params = new ArrayList<>();
 
 
     @Override
@@ -33,6 +34,24 @@ public class TypeCheck extends AnalysisVisitor {
         addVisit("VarDecl", this::visitVarDecl);
         addVisit("ImportDecl", this::visitImportDecl);
         addVisit("ClassDecl", this::visitClassDecl);
+        addVisit("Param", this::visitParam);
+    }
+
+    private Void visitParam(JmmNode jmmNode, SymbolTable table) {
+        String paramName = jmmNode.get("name");
+
+        if(!params.contains(paramName)) {
+            params.add(paramName);
+        }else{
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(jmmNode),
+                    NodeUtils.getColumn(jmmNode),
+                    "Parameter " + paramName + " already declared",
+                    null)
+            );
+        }
+        return null;
     }
 
     private Void visitClassDecl(JmmNode jmmNode, SymbolTable table) {
@@ -158,6 +177,7 @@ public class TypeCheck extends AnalysisVisitor {
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
         this.method = method.get("name");
         this.variables = new ArrayList<>();
+        this.params = new ArrayList<>();
 
         if(!methods.contains(this.method)) {
             methods.add(this.method);
@@ -170,6 +190,7 @@ public class TypeCheck extends AnalysisVisitor {
                     null)
             );
         }
+
 
         return null;
     }
