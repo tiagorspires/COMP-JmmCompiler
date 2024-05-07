@@ -9,10 +9,15 @@ import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class TypeCheck extends AnalysisVisitor {
 
     private String method;
+    private List<String> variables = new ArrayList<>();
+
 
     @Override
     public void buildVisitor(){
@@ -23,6 +28,24 @@ public class TypeCheck extends AnalysisVisitor {
         addVisit("ArrayAssign", this::visitArrayAssign);
         addVisit("ReturnStmt", this::visitReturnStmt);
         addVisit("ExprStmt", this::visitStmt);
+        addVisit("VarDecl", this::visitVarDecl);
+    }
+
+    private Void visitVarDecl(JmmNode jmmNode, SymbolTable table) {
+        String varName = jmmNode.get("name");
+
+        if(!variables.contains(varName)) {
+            variables.add(varName);
+        }else{
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(jmmNode),
+                    NodeUtils.getColumn(jmmNode),
+                    "Variable " + varName + " already declared",
+                    null)
+            );
+        }
+        return null;
     }
 
     private Void visitStmt(JmmNode jmmNode, SymbolTable table){
@@ -34,6 +57,7 @@ public class TypeCheck extends AnalysisVisitor {
 
         return null;
     }
+
 
     private Void visitReturnStmt(JmmNode jmmNode, SymbolTable table) {
         TypeGetter typeCheck = new TypeGetter(method);
@@ -94,6 +118,8 @@ public class TypeCheck extends AnalysisVisitor {
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
         this.method = method.get("name");
+        this.variables = new ArrayList<>();
+
         return null;
     }
 
