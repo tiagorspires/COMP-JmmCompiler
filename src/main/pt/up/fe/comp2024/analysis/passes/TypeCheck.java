@@ -17,6 +17,7 @@ public class TypeCheck extends AnalysisVisitor {
 
     private String method;
     private List<String> variables = new ArrayList<>();
+    private List<String> imports = new ArrayList<>();
 
 
     @Override
@@ -29,6 +30,24 @@ public class TypeCheck extends AnalysisVisitor {
         addVisit("ReturnStmt", this::visitReturnStmt);
         addVisit("ExprStmt", this::visitStmt);
         addVisit("VarDecl", this::visitVarDecl);
+        addVisit("ImportDecl", this::visitImportDecl);
+    }
+
+    private Void visitImportDecl(JmmNode jmmNode, SymbolTable table) {
+        String importName = jmmNode.get("value");
+
+        if(!imports.contains(importName)) {
+            imports.add(importName);
+        }else{
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(jmmNode),
+                    NodeUtils.getColumn(jmmNode),
+                    "Import " + importName + " already declared",
+                    null)
+            );
+        }
+        return null;
     }
 
     private Void visitVarDecl(JmmNode jmmNode, SymbolTable table) {
