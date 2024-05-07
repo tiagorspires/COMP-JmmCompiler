@@ -180,6 +180,37 @@ public class TypeCheck extends AnalysisVisitor {
         this.variables = new ArrayList<>();
         this.params = new ArrayList<>();
 
+        // if method is main check if the parameter is an array of strings
+
+        var parameters = table.getParameters(this.method);
+        if (this.method.equals("main")) {
+            if (method.getChildren("Param").size() != 1) {
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(method),
+                        NodeUtils.getColumn(method),
+                        "Main method must have one parameter",
+                        null)
+                );
+            } else if (!parameters.get(0).getName().equals("args")) {
+                    addReport(Report.newError(
+                            Stage.SEMANTIC,
+                            NodeUtils.getLine(method),
+                            NodeUtils.getColumn(method),
+                            "Main method parameter must be named args",
+                            null)
+                    );
+            } else if (!parameters.get(0).getType().isArray() || !parameters.get(0).getType().getName().equals("String")){
+                    addReport(Report.newError(
+                            Stage.SEMANTIC,
+                            NodeUtils.getLine(method),
+                            NodeUtils.getColumn(method),
+                            "Main method parameter must be an array of strings",
+                            null)
+                    );
+                }
+            }
+
         if(!methods.contains(this.method)) {
             methods.add(this.method);
         }else{
