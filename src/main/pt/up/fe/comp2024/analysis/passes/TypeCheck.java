@@ -18,6 +18,7 @@ public class TypeCheck extends AnalysisVisitor {
     private String method;
     private List<String> variables = new ArrayList<>();
     private List<String> imports = new ArrayList<>();
+    private List<String> methods = new ArrayList<>();
 
 
     @Override
@@ -31,10 +32,29 @@ public class TypeCheck extends AnalysisVisitor {
         addVisit("ExprStmt", this::visitStmt);
         addVisit("VarDecl", this::visitVarDecl);
         addVisit("ImportDecl", this::visitImportDecl);
+        addVisit("ClassDecl", this::visitClassDecl);
+    }
+
+    private Void visitClassDecl(JmmNode jmmNode, SymbolTable table) {
+        String className = jmmNode.get("className");
+        System.out.println(className + " nome da classe");
+        System.out.println(imports + "imports");
+        if(imports.contains(className)){
+
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(jmmNode),
+                    NodeUtils.getColumn(jmmNode),
+                    "Class " + className + " already declared",
+                    null)
+            );
+        }
+        return null;
     }
 
     private Void visitImportDecl(JmmNode jmmNode, SymbolTable table) {
-        String importName = jmmNode.get("value");
+        String[] importNames = jmmNode.get("value").substring(1, jmmNode.get("value").length() - 1).split(",");
+        String importName = importNames[importNames.length - 1];
 
         if(!imports.contains(importName)) {
             imports.add(importName);
@@ -138,6 +158,18 @@ public class TypeCheck extends AnalysisVisitor {
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
         this.method = method.get("name");
         this.variables = new ArrayList<>();
+
+        if(!methods.contains(this.method)) {
+            methods.add(this.method);
+        }else{
+            addReport(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(method),
+                    NodeUtils.getColumn(method),
+                    "Method " + this.method + " already declared",
+                    null)
+            );
+        }
 
         return null;
     }
