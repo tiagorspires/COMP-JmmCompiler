@@ -183,8 +183,22 @@ public class TypeCheck extends AnalysisVisitor {
         // if method is main check if the parameter is an array of strings
 
         var parameters = table.getParameters(this.method);
+
+
+
         if (this.method.equals("main")) {
-            if (method.getChildren("Param").size() != 1) {
+            System.out.println(method);
+            System.out.println(method.get("isStatic"));
+            if (!method.get("isStatic").equals("true")) {
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(method),
+                        NodeUtils.getColumn(method),
+                        "Main method must be static",
+                        null)
+                );
+            }
+            else if (method.getChildren("Param").size() != 1) {
                 addReport(Report.newError(
                         Stage.SEMANTIC,
                         NodeUtils.getLine(method),
@@ -206,6 +220,16 @@ public class TypeCheck extends AnalysisVisitor {
                             NodeUtils.getLine(method),
                             NodeUtils.getColumn(method),
                             "Main method parameter must be an array of strings",
+                            null)
+                    );
+                }
+            }else {
+                if (method.get("isStatic").equals("true")) {
+                    addReport(Report.newError(
+                            Stage.SEMANTIC,
+                            NodeUtils.getLine(method),
+                            NodeUtils.getColumn(method),
+                            "Method " + this.method + " must not be static",
                             null)
                     );
                 }
