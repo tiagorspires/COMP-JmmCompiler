@@ -183,22 +183,8 @@ public class TypeCheck extends AnalysisVisitor {
         // if method is main check if the parameter is an array of strings
 
         var parameters = table.getParameters(this.method);
-
-
-
         if (this.method.equals("main")) {
-            System.out.println(method);
-            System.out.println(method.get("isStatic"));
-            if (!method.get("isStatic").equals("true")) {
-                addReport(Report.newError(
-                        Stage.SEMANTIC,
-                        NodeUtils.getLine(method),
-                        NodeUtils.getColumn(method),
-                        "Main method must be static",
-                        null)
-                );
-            }
-            else if (method.getChildren("Param").size() != 1) {
+            if (method.getChildren("Param").size() != 1) {
                 addReport(Report.newError(
                         Stage.SEMANTIC,
                         NodeUtils.getLine(method),
@@ -207,33 +193,23 @@ public class TypeCheck extends AnalysisVisitor {
                         null)
                 );
             } else if (!parameters.get(0).getName().equals("args")) {
-                    addReport(Report.newError(
-                            Stage.SEMANTIC,
-                            NodeUtils.getLine(method),
-                            NodeUtils.getColumn(method),
-                            "Main method parameter must be named args",
-                            null)
-                    );
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(method),
+                        NodeUtils.getColumn(method),
+                        "Main method parameter must be named args",
+                        null)
+                );
             } else if (!parameters.get(0).getType().isArray() || !parameters.get(0).getType().getName().equals("String")){
-                    addReport(Report.newError(
-                            Stage.SEMANTIC,
-                            NodeUtils.getLine(method),
-                            NodeUtils.getColumn(method),
-                            "Main method parameter must be an array of strings",
-                            null)
-                    );
-                }
-            }else {
-                if (method.get("isStatic").equals("true")) {
-                    addReport(Report.newError(
-                            Stage.SEMANTIC,
-                            NodeUtils.getLine(method),
-                            NodeUtils.getColumn(method),
-                            "Method " + this.method + " must not be static",
-                            null)
-                    );
-                }
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(method),
+                        NodeUtils.getColumn(method),
+                        "Main method parameter must be an array of strings",
+                        null)
+                );
             }
+        }
 
         if(!methods.contains(this.method)) {
             methods.add(this.method);
