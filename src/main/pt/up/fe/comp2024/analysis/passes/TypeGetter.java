@@ -127,7 +127,16 @@ public class TypeGetter extends AJmmVisitor<SymbolTable, Type> {
     }
 
     private Type visitObject(JmmNode jmmNode, SymbolTable table) {
-
+        if(isStatic){
+            var message = "Cannot access non-static variable in static context";
+            reports.add(Report.newError(
+                    Stage.SEMANTIC,
+                    NodeUtils.getLine(jmmNode),
+                    NodeUtils.getColumn(jmmNode),
+                    message,
+                    null
+            ));
+        }
 
         return new Type(table.getClassName(),false);
     }
