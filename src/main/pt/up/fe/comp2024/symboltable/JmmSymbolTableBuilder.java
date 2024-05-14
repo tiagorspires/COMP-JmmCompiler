@@ -58,7 +58,6 @@ public class JmmSymbolTableBuilder {
             case "Array" -> new Type(getType(node.getJmmChild(0)).getName(), true);
             case "String" -> new Type("String", false);
             case "Id" -> new Type(node.get("name"), false);
-            case "Ellipsis" -> new Type("int", true);
 
             default -> throw new RuntimeException("Unknown type: " + node.getKind());
         };
@@ -75,6 +74,10 @@ public class JmmSymbolTableBuilder {
 
             map.put(method.get("name"), symbols);
         });
+        var a = classDecl.getChildren("MethodDecl");
+        if (a.get(a.size() -1 ).get("hasEllipsis").equals("true")){
+            map.get(a.get(a.size() -1 ).get("name")).add(new Symbol(new Type("int", true), a.get(a.size() -1 ).get("ellipsisName")));
+        }
 
         return map;
     }
