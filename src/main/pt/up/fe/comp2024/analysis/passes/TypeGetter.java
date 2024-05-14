@@ -19,9 +19,11 @@ public class TypeGetter extends AJmmVisitor<SymbolTable, Type> {
     public final static Type BOOL = new Type("boolean",false);
     public final static Type ANY = new Type("any", false);
     private final String methodName;
+    boolean isStatic;
 
 
-    public TypeGetter(String methodName) {
+    public TypeGetter(String methodName, boolean isStatic) {
+        this.isStatic = isStatic;
         this.methodName = methodName;
     }
 
@@ -76,7 +78,7 @@ public class TypeGetter extends AJmmVisitor<SymbolTable, Type> {
 
     private Type visitArrayInit(JmmNode jmmNode, SymbolTable table) {
         var firstType = visit(jmmNode.getJmmChild(0),table);
-        System.out.println("fdafdda");
+
         for (JmmNode node: jmmNode.getChildren()){
             var type = visit(node,table);
             if (!type.equals(firstType)){
@@ -96,8 +98,6 @@ public class TypeGetter extends AJmmVisitor<SymbolTable, Type> {
 
     private Type visitNewArray(JmmNode jmmNode, SymbolTable table) {
         Type type = visit(jmmNode.getJmmChild(0),table);
-
-        System.out.println("vfsdvfdb");
 
         if (!type.equals(INT)){
             var message = "Array size must be an integer";
@@ -127,6 +127,8 @@ public class TypeGetter extends AJmmVisitor<SymbolTable, Type> {
     }
 
     private Type visitObject(JmmNode jmmNode, SymbolTable table) {
+
+
         return new Type(table.getClassName(),false);
     }
 
@@ -140,7 +142,8 @@ public class TypeGetter extends AJmmVisitor<SymbolTable, Type> {
 
         a = table.getFields().stream().filter((x) -> x.getName().equals(varName)).findFirst();
 
-        if (a.isPresent()){
+
+        if (a.isPresent() && !isStatic){
             return a.get().getType();
         }
 
@@ -212,6 +215,8 @@ public class TypeGetter extends AJmmVisitor<SymbolTable, Type> {
 
     private Type visitFunctionCall(JmmNode jmmNode, SymbolTable table) {
         var func = visit(jmmNode.getJmmChild(0), table);
+
+        //System.out.println(func.getName()+ "aaaaaaaaaaaaaaaa");
 
         if (func.getName().equals(table.getClassName()) && table.getSuper() == null) {
             if (!table.getMethods().contains(jmmNode.get("name"))){

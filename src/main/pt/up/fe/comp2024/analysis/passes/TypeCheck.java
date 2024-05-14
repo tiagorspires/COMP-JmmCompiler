@@ -20,6 +20,7 @@ public class TypeCheck extends AnalysisVisitor {
     private List<String> imports = new ArrayList<>();
     private List<String> methods = new ArrayList<>();
     private List<String> params = new ArrayList<>();
+    boolean isStatic;
 
 
     @Override
@@ -106,7 +107,7 @@ public class TypeCheck extends AnalysisVisitor {
     }
 
     private Void visitStmt(JmmNode jmmNode, SymbolTable table){
-        TypeGetter typeCheck = new TypeGetter(method);
+        TypeGetter typeCheck = new TypeGetter(method, isStatic);
 
         typeCheck.visit(jmmNode.getJmmChild(0),table);
 
@@ -117,7 +118,7 @@ public class TypeCheck extends AnalysisVisitor {
 
 
     private Void visitReturnStmt(JmmNode jmmNode, SymbolTable table) {
-        TypeGetter typeCheck = new TypeGetter(method);
+        TypeGetter typeCheck = new TypeGetter(method, isStatic);
 
         Type a = typeCheck.visit(jmmNode.getJmmChild(0),table);
 
@@ -137,7 +138,7 @@ public class TypeCheck extends AnalysisVisitor {
     }
 
     private Void visitArrayAssign(JmmNode jmmNode, SymbolTable table) {
-        TypeGetter typeCheck = new TypeGetter(method);
+        TypeGetter typeCheck = new TypeGetter(method, isStatic);
 
         var variable = table.getLocalVariables(method).stream().filter((v) -> v.getName().equals(jmmNode.get("var"))).findFirst();
 
@@ -179,7 +180,8 @@ public class TypeCheck extends AnalysisVisitor {
         this.method = method.get("name");
         this.variables = new ArrayList<>();
         this.params = new ArrayList<>();
-
+        this.isStatic = method.get("isStatic").equals("true");
+        System.out.println(method.get("isStatic") + " " + method.get("name"));
         // if method is main check if the parameter is an array of strings
 
         var parameters = table.getParameters(this.method);
@@ -254,7 +256,7 @@ public class TypeCheck extends AnalysisVisitor {
 
 
     private Void visitWhileStmt(JmmNode whileNode, SymbolTable table) {
-        TypeGetter typeCheck = new TypeGetter(method);
+        TypeGetter typeCheck = new TypeGetter(method, isStatic);
 
         Type a = typeCheck.visit(whileNode.getJmmChild(0), table);
 
@@ -276,15 +278,15 @@ public class TypeCheck extends AnalysisVisitor {
 
     private Void visitAssignStmt(JmmNode assignStmt, SymbolTable table) {
 
-        TypeGetter typeCheck = new TypeGetter(method);
+        TypeGetter typeCheck = new TypeGetter(method, isStatic);
 
         var variable = table.getLocalVariables(method).stream().filter((v) -> v.getName().equals(assignStmt.get("var"))).findFirst();
 
-        if (!variable.isPresent()){
-            variable  = table.getFields().stream().filter((v) -> v.getName().equals(assignStmt.get("var"))).findFirst();
-            if (!variable.isPresent()){
-                variable = table.getParameters(method).stream().filter((v) -> v.getName().equals(assignStmt.get("var"))).findFirst();
-                if (!variable.isPresent()){
+        if (variable.isEmpty()){
+            variable = table.getParameters(method).stream().filter((v) -> v.getName().equals(assignStmt.get("var"))).findFirst();
+            if (variable.isEmpty()){
+                variable  = table.getFields().stream().filter((v) -> v.getName().equals(assignStmt.get("var"))).findFirst();
+                if (isStatic || variable.isEmpty()){
                     addReport(Report.newError(
                             Stage.SEMANTIC,
                             NodeUtils.getLine(assignStmt),
@@ -350,7 +352,7 @@ public class TypeCheck extends AnalysisVisitor {
 
 
     private Void visitIfElseStmt(JmmNode ifElseStmt, SymbolTable table) {
-        TypeGetter typeCheck = new TypeGetter(method);
+        TypeGetter typeCheck = new TypeGetter(method, isStatic);
 
         JmmNode condition = ifElseStmt.getJmmChild(0);
         Type a = typeCheck.visit(condition,table);
