@@ -38,7 +38,7 @@ public class TypeUtils {
             case FUNCTION_CALL -> getVarExprType(expr, table);
             case NEGATION -> getVarExprType(expr, table);
             case NEW_ARRAY -> new Type(INT_TYPE_NAME, true);
-            case ARRAY_ACCESS -> getVarExprType(expr, table);
+            case ARRAY_ACCESS -> new Type("int", true);
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
         };
         //System.out.print(" VisitVarRef4:" + type  + "\n");
@@ -80,7 +80,6 @@ public class TypeUtils {
         if(varRefExpr.getKind().equals("Negation")) {
             return new Type("boolean", false);
         }
-
 
 
         //System.out.println(" ola?:"+retType);

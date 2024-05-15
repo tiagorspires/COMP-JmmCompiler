@@ -93,8 +93,8 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         computation.append(node.get("op")).append(OptUtils.toOllirType(type)).append(SPACE)
                 .append(rhs.getCode()).append(END_STMT);
 
-//        System.out.print(" Code:"+code+"\n");
-//        System.out.print(" Computation:"+computation+"\n");
+        System.out.print(" Code:"+code+"\n");
+        System.out.print(" Computation:"+computation+"\n");
         return new OllirExprResult(code, computation);
     }
 
@@ -270,7 +270,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     }
 
     private OllirExprResult visitNewArray(JmmNode node, Void unused) {
-        System.out.println(" NewArray:"+node);
+//        System.out.println(" NewArray:"+node);
         Type resType = TypeUtils.getExprType(node, table);
         String resOllirType = OptUtils.toOllirType(resType);
         String code = "new(array, " + visit(node.getChild(0)).getCode() + ")" + resOllirType ;
@@ -278,11 +278,24 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     }
 
     private OllirExprResult visitArrayAccess(JmmNode node, Void unused) {
-        System.out.println(" NewArray:"+node);
+//        System.out.println(" NewArray:"+node);
+        StringBuilder computation = new StringBuilder();
+        String temp = "";
+        String code = "";
         Type resType = TypeUtils.getExprType(node.getChild(0), table);
         String resOllirType = OptUtils.toOllirType(resType);
-        String code = node.getChild(0).get("name") + "[" + visit(node.getChild(1)).getCode() + "]" + resOllirType ;
-        return new OllirExprResult(code);
+        temp = OptUtils.getTemp() + resOllirType;
+//        System.out.println(" temp:"+temp);
+        computation.append(temp).append(SPACE);
+
+        code = temp;
+
+        computation.append(ASSIGN).append(resOllirType).append(SPACE);
+
+        computation.append(node.getChild(0).get("name")).append("[").append(visit(node.getChild(1)).getCode()).append("]").append(resOllirType).append(END_STMT);
+        System.out.println(" Array Access:"+code);
+        System.out.println(" Array Access:"+computation);
+        return new OllirExprResult(code,computation);
     }
 
     /**

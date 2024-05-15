@@ -223,7 +223,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         // type
         //var retType = OptUtils.toOllirType(node.getJmmChild(0));
-        System.out.println(" ???:"+node.getJmmChild(0));
+        //System.out.println(" ???:"+node.getJmmChild(0));
         var retType = visit(node.getJmmChild(0));
         //System.out.print(" RetType:"+retType+"\n");
         code.append(retType);
@@ -446,7 +446,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
     private String visitArrayAssign(JmmNode node, Void unused) {
         System.out.println(" Array?:"+node);
-        var ArrayType = new Type(node.get("name"), false);
+        var ArrayType = new Type(node.getChild(0).getKind(), false);
         StringBuilder code = new StringBuilder();
         code.append(OptUtils.toOllirType(ArrayType));
 
