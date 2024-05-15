@@ -42,11 +42,15 @@ public class OptUtils {
     }
 
     public static String toOllirType(Type type) {
-        return toOllirType(type.getName());
+        StringBuilder code = new StringBuilder();
+        if(type.isArray()) {
+            code.append(".array");
+        }
+        code.append(toOllirType(type.getName()));
+        return code.toString();
     }
 
     private static String toOllirType(String typeName) {
-
         String type = "." + switch (typeName) {
             case "int" -> "i32";
             //case "bool" -> "bool";

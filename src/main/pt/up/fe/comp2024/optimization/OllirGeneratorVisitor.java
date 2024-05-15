@@ -50,7 +50,8 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit("ImportDecl", this::visitImport);
         addVisit("Void", this::visitVoid);
         addVisit("Id", this::visitId);
-//        addVisit(FUNCTION_CALL, this::visitFunctionCall);
+        addVisit("ArrayAssign", this::visitArrayAssign);
+        addVisit("Array", this::visitArray);
 
         setDefaultVisit(this::defaultVisit);
     }
@@ -121,7 +122,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         code.append(END_STMT);
 
-        System.out.println(" code assign:"+code);
+        //System.out.println(" code assign:"+code);
         return code.toString();
     }
 
@@ -222,7 +223,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         // type
         //var retType = OptUtils.toOllirType(node.getJmmChild(0));
-
+        System.out.println(" ???:"+node.getJmmChild(0));
         var retType = visit(node.getJmmChild(0));
         //System.out.print(" RetType:"+retType+"\n");
         code.append(retType);
@@ -443,30 +444,33 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         return code.toString();
     }
 
+    private String visitArrayAssign(JmmNode node, Void unused) {
+        System.out.println(" Array?:"+node);
+        var ArrayType = new Type(node.get("name"), false);
+        StringBuilder code = new StringBuilder();
+        code.append(OptUtils.toOllirType(ArrayType));
+
+        //System.out.println(code);
+        return code.toString();
+    }
+
+    private String visitArray(JmmNode node, Void unused) {
+        Type arrayType;
+        if(node.getChild(0).getKind().equals("Integer")) {
+            arrayType = new Type("int", true);
+        } else if(node.getChild(0).getKind().equals("Boolean")) {
+            arrayType = new Type("boolean", true);
+        } else {
+            arrayType = new Type(node.getKind(), true);
+        }
+        StringBuilder code = new StringBuilder();
+        code.append(OptUtils.toOllirType(arrayType));
+
+        System.out.println(code);
+        return code.toString();
+    }
 
 
-//    private String visitFunctionCall(JmmNode node, Void unused) {
-//        System.out.print(" SERA?:"+node+"\n");
-//        StringBuilder code = new StringBuilder("invokestatic");
-//
-//        code.append("(");
-//
-//        code.append((node.getChild(0).get("name")));
-//
-//        code.append(", ");
-//
-//        code.append("\""+node.get("name")+"\", ");
-//        System.out.print(" Child disto:"+node.getChild(1)+"\n");
-//        code.append(exprVisitor.visit(node.getChild(1)).getCode());
-//
-//        code.append(")");
-//
-//        code.append(".V");
-//
-//        code.append(END_STMT);
-//        System.out.print(code);
-//        return code.toString();
-//    }
 
 
     /**
@@ -477,7 +481,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
      * @return
      */
     private String defaultVisit(JmmNode node, Void unused) {
-
         for (var child : node.getChildren()) {
             visit(child);
         }

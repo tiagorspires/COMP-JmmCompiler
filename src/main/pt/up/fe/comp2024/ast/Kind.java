@@ -25,11 +25,14 @@ public enum Kind {
     VOID,
     VAR_REF_EXPR,
     NEW_CLASS,
-    FUNCTION_CALL;
+    FUNCTION_CALL,
+    NEGATION,
+    NEW_ARRAY,
+    ARRAY_ACCESS;
 
 
     private static final Set<Kind> STATEMENTS = Set.of(ASSIGN_STMT, RETURN_STMT);
-    private static final Set<Kind> EXPRESSIONS = Set.of(BINARY_OP, INTEGER_LITERAL, BOOLEAN_LITERAL, VAR_REF_EXPR, NEW_CLASS, FUNCTION_CALL);
+    private static final Set<Kind> EXPRESSIONS = Set.of(BINARY_OP, INTEGER_LITERAL, BOOLEAN_LITERAL, VAR_REF_EXPR, NEW_CLASS, FUNCTION_CALL, NEGATION, NEW_ARRAY, ARRAY_ACCESS);
 
     private final String name;
 
