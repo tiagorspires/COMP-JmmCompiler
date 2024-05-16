@@ -35,6 +35,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         addVisit(NEGATION, this::visitNegation);
         addVisit(NEW_ARRAY, this::visitNewArray);
         addVisit(ARRAY_ACCESS, this::visitArrayAccess);
+        addVisit(ARRAY_INIT, this::visitArrayInit);
 
         setDefaultVisit(this::defaultVisit);
     }
@@ -59,6 +60,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         } else {
             code = node.get("value") + ollirBoolType;
         }
+
         return new OllirExprResult(code);
     }
 
@@ -296,6 +298,14 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         System.out.println(" Array Access:"+code);
         System.out.println(" Array Access:"+computation);
         return new OllirExprResult(code,computation);
+    }
+
+    private OllirExprResult visitArrayInit(JmmNode node, Void unused) {
+        System.out.println(" NewArray:"+node);
+        Type resType = TypeUtils.getExprType(node, table);
+        String resOllirType = OptUtils.toOllirType(resType);
+        String code = "new(array, " + visit(node.getChild(0)).getCode() + ")" + resOllirType ;
+        return new OllirExprResult(code);
     }
 
     /**

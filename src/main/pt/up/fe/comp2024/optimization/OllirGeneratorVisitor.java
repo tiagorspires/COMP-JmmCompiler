@@ -204,8 +204,8 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             for(Symbol param : paramCode) {
                 //System.out.print(" Node Param:"+param+"\n");
                 code.append(param.getName());
-                if(param.getType().isArray())
-                    code.append(".array");
+//                if(param.getType().isArray())
+//                    code.append(".array");
                 var paramType = OptUtils.toOllirType(param.getType());
                 code.append(paramType);
                 if(!(paramCode.indexOf(param) == (paramCode.size() -1))){
@@ -445,12 +445,78 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     }
 
     private String visitArrayAssign(JmmNode node, Void unused) {
-        System.out.println(" Array?:"+node);
-        var ArrayType = new Type(node.getChild(0).getKind(), false);
-        StringBuilder code = new StringBuilder();
-        code.append(OptUtils.toOllirType(ArrayType));
+//        System.out.println(" Array?:"+node);
+//        StringBuilder computation = new StringBuilder();
+//        String code = "";
+//        String methodName = node.getAncestor(METHOD_DECL).map(method -> method.get("name")).orElseThrow();
+//        Type resType = TypeUtils.getExprType(node.getChild(0), table);
+//        String resOllirType = OptUtils.toOllirType(resType);
+//
+//        for(int i = 0; i<table.getParameters(methodName).size(); i++) {
+//            if(table.getParameters(methodName).get(i).getName().equals(node.get("var"))) {
+//                //System.out.println(" parametro:"+table.getParameters(methodName).get(i).getType().getName());
+//                computation.append(table.getParameters(methodName).get(i).getType());
+//            }
+//        }
+//
+//        computation.append(node.get("var")).append("[").append(visit(node.getChild(0))).append("]").append(resOllirType).append(SPACE);
+//
+//        computation.append(ASSIGN).append(resOllirType).append(SPACE);
+//
+//        computation.append(visit(node.getChild(1))).append(END_STMT);
+//        System.out.println(" Array Access:"+code);
+//        System.out.println(" Array Access:"+computation);
+//        return computation.toString();
 
-        //System.out.println(code);
+
+
+
+
+
+        StringBuilder code = new StringBuilder();
+        String methodName = node.getAncestor(METHOD_DECL).map(method -> method.get("name")).orElseThrow();
+
+        var position = exprVisitor.visit(node.getJmmChild(0));
+        var value = exprVisitor.visit(node.getJmmChild(1));
+
+
+        Type thisType = TypeUtils.getExprType(node.getJmmChild(0), table);
+        String typeString = OptUtils.toOllirType(thisType);
+
+        for(int i = 0; i<table.getLocalVariables(methodName).size(); i++) {
+            if(table.getLocalVariables(methodName).get(i).getName().equals(node.get("var"))) {
+                //code.append(table.getLocalVariables(methodName).get(i).getName()).append("[").append(visit(node.getChild(0))).append("]").append(typeString);;
+                if(node.getChild(0).getKind().equals("NewClass")){
+                    code.append(OptUtils.toOllirType(new Type(node.getChild(0).get("name"), false)));
+                } else {
+                    code.append(node.get("var")).append("[").append(position.getCode()).append("]").append(typeString);
+
+                }
+            }
+        }
+
+        for(int i = 0; i<table.getParameters(methodName).size(); i++) {
+            if(table.getParameters(methodName).get(i).getName().equals(node.get("var"))) {
+                //code.append(table.getParameters(methodName).get(i).getName()).append("[").append(visit(node.getChild(0))).append("]").append(typeString);
+                if(node.getChild(0).getKind().equals("NewClass")){
+                    code.append(OptUtils.toOllirType(new Type(node.getChild(0).get("name"), false)));
+                } else {
+                    code.append(node.get("var")).append("[").append(position.getCode()).append("]").append(typeString);
+                }
+            }
+        }
+
+        code.append(SPACE);
+
+        code.append(ASSIGN);
+        code.append(typeString);
+        code.append(SPACE);
+
+        code.append(value.getCode());
+
+        code.append(END_STMT);
+
+        System.out.println(" code assign:"+code);
         return code.toString();
     }
 

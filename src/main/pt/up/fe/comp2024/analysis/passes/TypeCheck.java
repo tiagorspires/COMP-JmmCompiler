@@ -181,7 +181,7 @@ public class TypeCheck extends AnalysisVisitor {
         this.variables = new ArrayList<>();
         this.params = new ArrayList<>();
         this.isStatic = method.get("isStatic").equals("true");
-        System.out.println(method.get("isStatic") + " " + method.get("name"));
+//        System.out.println(method.get("isStatic") + " " + method.get("name"));
         // if method is main check if the parameter is an array of strings
 
         var parameters = table.getParameters(this.method);
@@ -189,8 +189,8 @@ public class TypeCheck extends AnalysisVisitor {
 
 
         if (this.method.equals("main")) {
-            System.out.println(method);
-            System.out.println(method.get("isStatic"));
+//            System.out.println(method);
+//            System.out.println(method.get("isStatic"));
             if (!method.get("isStatic").equals("true")) {
                 addReport(Report.newError(
                         Stage.SEMANTIC,
@@ -301,9 +301,9 @@ public class TypeCheck extends AnalysisVisitor {
         }
 
         Type expr = typeCheck.visit(assignStmt.getJmmChild(0),table);
-        System.out.println(assignStmt.getJmmChild(0));
-        System.out.println(variable.get().getType().getName() + " tipo da variavel");
-        System.out.println(expr.getName() + " tipo da expressao");
+//        System.out.println(assignStmt.getJmmChild(0));
+//        System.out.println(variable.get().getType().getName() + " tipo da variavel");
+//        System.out.println(expr.getName() + " tipo da expressao");
 
 
 
