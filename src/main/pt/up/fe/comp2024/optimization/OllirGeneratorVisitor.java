@@ -122,7 +122,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         code.append(END_STMT);
 
-        //System.out.println(" code assign:"+code);
+        System.out.println(" code assign:"+code);
         return code.toString();
     }
 
@@ -132,6 +132,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         Type retType = table.getReturnType(methodName);
         //System.out.print(" Return qual é?: "+node.getChild(0)+"\n");
         //System.out.print(" Return type: " + retType + "\n");
+        System.out.println(node);
         StringBuilder code = new StringBuilder();
 
         var expr = OllirExprResult.EMPTY;
@@ -480,7 +481,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         var value = exprVisitor.visit(node.getJmmChild(1));
 
 
-        Type thisType = TypeUtils.getExprType(node.getJmmChild(0), table);
+        Type thisType = TypeUtils.getExprType(node.getJmmChild(1), table);
         String typeString = OptUtils.toOllirType(thisType);
 
         for(int i = 0; i<table.getLocalVariables(methodName).size(); i++) {

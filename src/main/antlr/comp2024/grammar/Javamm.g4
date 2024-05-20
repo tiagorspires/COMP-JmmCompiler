@@ -74,7 +74,6 @@ varDecl
 
 type
     : type LSQPAREN RSQPAREN #Array //
-    | INT ELLIPSIS #Ellipsis //
     | BOOLEAN #Boolean //
     | INT #Integer //
     | STRING #String //
@@ -82,11 +81,15 @@ type
     | VOID #Void //
     ;
 
-methodDecl locals[boolean isPublic=false, boolean isStatic=false]
-    : (PUBLIC {$isPublic=true;})? (STATIC {$isStatic=true;})?
-        type name=ID
-        LPAREN (param (COMMA param)*)? RPAREN
-        LCURLY varDecl* stmt* RCURLY
+methodDecl locals[boolean isPublic=false, boolean isStatic=false, boolean hasEllipsis=false]
+    :(PUBLIC {$isPublic=true;})? (STATIC {$isStatic=true;})?
+                   type name=ID
+                   LPAREN (param (COMMA param)*) (COMMA INT ELLIPSIS {$hasEllipsis=true;} ellipsisName=ID)? RPAREN
+                   LCURLY varDecl* stmt* RCURLY
+    | (PUBLIC {$isPublic=true;})? (STATIC {$isStatic=true;})?
+                    type name=ID
+                    LPAREN (INT ELLIPSIS {$hasEllipsis=true;} ellipsisName=ID)? RPAREN
+                    LCURLY varDecl* stmt* RCURLY
     ;
 
 param

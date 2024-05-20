@@ -39,6 +39,8 @@ public class TypeUtils {
             case NEGATION -> getVarExprType(expr, table);
             case NEW_ARRAY -> new Type(INT_TYPE_NAME, true);
             case ARRAY_ACCESS -> new Type("int", true);
+            case ARRAY_INIT -> new Type("int", true);
+            case LENGTH -> new Type("int", false);
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
         };
         //System.out.print(" VisitVarRef4:" + type  + "\n");
@@ -90,13 +92,25 @@ public class TypeUtils {
             }
         }
 
+        for(int i = 0; i<table.getLocalVariables(methodName).size(); i++) {
+            if(table.getLocalVariables(methodName).get(i).getName().equals(varRefExpr.get("name"))) {
+//                System.out.println(" parametro:"+table.getLocalVariables(methodName).get(i).getType());
+                retType = table.getLocalVariables(methodName).get(i).getType();
+            }
+        }
 
-        if(retType.getName().equals("boolean")) {
+
+        if(retType.isArray()) {
+            return new Type(retType.getName(), true);
+        }
+        else if(retType.getName().equals("boolean")) {
             return new Type("boolean", false);
         }
         else if(retType.getName().equals(INT_TYPE_NAME)) {
             return new Type(INT_TYPE_NAME, false);
         }
+
+
         else return new Type(INT_TYPE_NAME, false);
     }
 

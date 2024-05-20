@@ -7,6 +7,9 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static pt.up.fe.comp2024.ast.Kind.*;
 
 /**
@@ -36,6 +39,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         addVisit(NEW_ARRAY, this::visitNewArray);
         addVisit(ARRAY_ACCESS, this::visitArrayAccess);
         addVisit(ARRAY_INIT, this::visitArrayInit);
+        addVisit(LENGTH, this::visitLength);
 
         setDefaultVisit(this::defaultVisit);
     }
@@ -129,6 +133,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         StringBuilder computation = new StringBuilder();
         Type retType;
         String temp = "";
+        OllirExprResult childfunc = new OllirExprResult("", "");
 
         if(table.getReturnType(node.get("name")) != null) {
             retType = table.getReturnType(node.get("name"));
@@ -136,10 +141,19 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             retType = new Type("void", false);
         }
 
+        if(node.getChildren().size()>1) {
+            for(int i=1; i<node.getChildren().size(); i++) {
+                if(node.getChild(i).getKind().equals("FunctionCall") || node.getChild(i).getKind().equals("Length")) {
+                    childfunc = visit(node.getChild(i));
+                }
+            }
+        }
+        computation.append(childfunc.getComputation());
+
 //        System.out.println(" b:"+table.getReturnType(node.get("name")));
 
         String code = "";
-        if(node.getParent().getKind().equals("BinaryOp") || node.getParent().getKind().equals("AssignStmt")) {
+        if(node.getParent().getKind().equals("BinaryOp") || node.getParent().getKind().equals("AssignStmt") || node.getParent().getKind().equals("FunctionCall")) {
             if (retType != null) {
                 temp = OptUtils.getTemp() + OptUtils.toOllirType(retType);
             } else {
@@ -164,16 +178,34 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         }
 
         computation.append("(");
+
+        List<String> imports = table.getImports();
+        List<String> modifiedImports = new ArrayList<>();
+
+        for (String importString : imports) {
+            String[] elements = importString.substring(1, importString.length() - 1).split(",");
+            for (String element : elements) {
+                modifiedImports.add(element.trim());
+            }
+        }
+
 //        System.out.println(" BBBBBBBBBBBBBB:"+table.getImports().size());
 //        System.out.println(" CCCCCCCCCCCCCC:"+node.getChild(0));
         if(node.getChild(0).hasAttribute("name")) {
             //System.out.println(" BBBBBBBBBBBBBB:"+table.getImports().get(0).contains(node.getChild(0).get("name")));
-            for(int i = 0;i<table.getImports().size();i++) {
-                if (table.getImports().get(i).contains(node.getChild(0).get("name"))) {
-                    computation.append(node.getChild(0).get("name"));
-                } else {
-                    computation.append((node.getChild(0).get("name"))).append(".").append(table.getClassName());
-                }
+//            for(int i = 0;i<table.getImports().size();i++) {
+//                if (table.getImports().get(i).contains(node.getChild(0).get("name"))) {
+//                    computation.append(node.getChild(0).get("name"));
+//                }
+//                else {
+//                    computation.append((node.getChild(0).get("name"))).append(".").append(table.getClassName());
+//                }
+//            }
+            if(modifiedImports.contains(node.getChild(0).get("name"))) {
+                computation.append(node.getChild(0).get("name"));
+            }
+            else {
+                computation.append((node.getChild(0).get("name"))).append(".").append(table.getClassName());
             }
             //computation.append(node.getAncestor(VAR_DECL));
         } else {
@@ -188,7 +220,13 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         if(node.getChildren().size()>1) {
             for(int i=1; i<node.getChildren().size(); i++) {
                 computation.append(", ");
-                computation.append(visit(node.getChild(i)).getCode());
+                if(node.getChild(i).getKind().equals("FunctionCall")) {
+                    computation.append(childfunc.getCode());
+                }
+                else {
+                    computation.append(visit(node.getChild(i)).getCode());
+                }
+
             }
         }
 
@@ -267,7 +305,8 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         //System.out.println(" negation:"+node);
         Type resType = TypeUtils.getExprType(node, table);
         String resOllirType = OptUtils.toOllirType(resType);
-        String code = "!" + resOllirType + SPACE + visit(node.getChild(0)).getCode();
+        String code = node.get("value") + resOllirType + SPACE + visit(node.getChild(0)).getCode();
+//        String code = "!" + resOllirType + SPACE + visit(node.getChild(0)).getCode();
         return new OllirExprResult(code);
     }
 
@@ -286,6 +325,8 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         String code = "";
         Type resType = TypeUtils.getExprType(node.getChild(0), table);
         String resOllirType = OptUtils.toOllirType(resType);
+        Type retArrayAcces = TypeUtils.getExprType(node, table);
+        String retArrayAccesOllirType = OptUtils.toOllirType(retArrayAcces);
         temp = OptUtils.getTemp() + resOllirType;
 //        System.out.println(" temp:"+temp);
         computation.append(temp).append(SPACE);
@@ -294,7 +335,13 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         computation.append(ASSIGN).append(resOllirType).append(SPACE);
 
-        computation.append(node.getChild(0).get("name")).append("[").append(visit(node.getChild(1)).getCode()).append("]").append(resOllirType).append(END_STMT);
+        if(node.getParent().getKind().equals("ReturnStmt")) {
+            computation.append(node.getChild(0).get("name")).append(retArrayAccesOllirType).append("[").append(visit(node.getChild(1)).getCode()).append("]").append(resOllirType).append(END_STMT);
+        }
+        else {
+            computation.append(node.getChild(0).get("name")).append("[").append(visit(node.getChild(1)).getCode()).append("]").append(resOllirType).append(END_STMT);
+        }
+
         System.out.println(" Array Access:"+code);
         System.out.println(" Array Access:"+computation);
         return new OllirExprResult(code,computation);
@@ -302,10 +349,57 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
     private OllirExprResult visitArrayInit(JmmNode node, Void unused) {
         System.out.println(" NewArray:"+node);
-        Type resType = TypeUtils.getExprType(node, table);
-        String resOllirType = OptUtils.toOllirType(resType);
-        String code = "new(array, " + visit(node.getChild(0)).getCode() + ")" + resOllirType ;
-        return new OllirExprResult(code);
+        String methodName = node.getAncestor(METHOD_DECL).map(method -> method.get("name")).orElseThrow();
+        StringBuilder computation = new StringBuilder();
+        String temp = "";
+        String code = "";
+        Type retType = TypeUtils.getExprType(node.getChild(0), table);
+        String arrayType = OptUtils.toOllirType(retType);
+
+        for(int i = 0; i<table.getParameters(methodName).size(); i++) {
+            if(table.getParameters(methodName).get(i).getName().equals(node.getParent().get("var"))) {
+                //System.out.println(" parametro:"+table.getParameters(methodName).get(i).getType().getName());
+                retType = table.getParameters(methodName).get(i).getType();
+            }
+        }
+
+        for(int i = 0; i<table.getLocalVariables(methodName).size(); i++) {
+            if(table.getLocalVariables(methodName).get(i).getName().equals(node.getParent().get("var"))) {
+                //System.out.println(" parametro:"+table.getParameters(methodName).get(i).getType().getName());
+                retType = table.getLocalVariables(methodName).get(i).getType();
+            }
+        }
+
+        String resOllirType = OptUtils.toOllirType(retType);
+
+        temp = OptUtils.getTemp() + resOllirType;
+        code = "__varargs_array_0" + resOllirType;
+        computation.append(temp).append(SPACE).append(ASSIGN).append(resOllirType).append(SPACE).append("new(array, ").append(node.getNumChildren()).append(arrayType).append(")").append(resOllirType).append(END_STMT);
+
+        computation.append(code).append(SPACE).append(ASSIGN).append(resOllirType).append(SPACE).append(temp).append(END_STMT);
+
+        for(int i = 0; i<node.getNumChildren(); i++) {
+            computation.append(code).append("[").append(visit(node.getChild(i)).getCode()).append("]").append(arrayType).append(SPACE).append(ASSIGN).append(arrayType).append(SPACE).append(visit(node.getChild(i)).getCode()).append(END_STMT);
+        }
+
+        return new OllirExprResult(code, computation.toString());
+    }
+
+    private OllirExprResult visitLength(JmmNode node, Void unused) {
+        StringBuilder computation = new StringBuilder();
+        String temp = "";
+        String code = "";
+        Type lengthType = TypeUtils.getExprType(node, table);
+        String resOllirType = OptUtils.toOllirType(lengthType);
+        Type retType = TypeUtils.getExprType(node.getChild(0), table);
+        String arrayType = OptUtils.toOllirType(retType);
+
+        temp = OptUtils.getTemp() + resOllirType;
+        code = temp;
+
+        computation.append(temp).append(SPACE).append(ASSIGN).append(resOllirType).append(SPACE).append("arraylength(").append(visit(node.getChild(0)).getCode()).append(")").append(resOllirType).append(END_STMT);
+
+        return new OllirExprResult(code, computation);
     }
 
     /**
