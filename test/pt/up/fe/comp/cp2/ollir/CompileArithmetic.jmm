@@ -1,7 +1,7 @@
 class CompileArithmetic {
 
     public static void main(String[] args) {
-z
+
     }
 
     public int foo(int c) {
