@@ -7,10 +7,7 @@ import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.TypeUtils;
 import pt.up.fe.specs.util.SpecsCheck;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static pt.up.fe.comp2024.ast.Kind.METHOD_DECL;
 import static pt.up.fe.comp2024.ast.Kind.VAR_DECL;
@@ -58,7 +55,6 @@ public class JmmSymbolTableBuilder {
             case "Array" -> new Type(getType(node.getJmmChild(0)).getName(), true);
             case "String" -> new Type("String", false);
             case "Id" -> new Type(node.get("name"), false);
-            case "Ellipsis" -> new Type("int", true);
 
             default -> throw new RuntimeException("Unknown type: " + node.getKind());
         };
@@ -67,14 +63,22 @@ public class JmmSymbolTableBuilder {
     private static Map<String, List<Symbol>> buildParams(JmmNode classDecl) {
         Map<String, List<Symbol>> map = new HashMap<>();
 
-        classDecl.getChildren("MethodDecl").stream().forEach( method -> {
+        for (JmmNode method : classDecl.getChildren("MethodDecl")) {
+            List<Symbol> symbols = new ArrayList<>();
+            for (JmmNode param : method.getChildren("Param")) {
+                Symbol name = new Symbol(getType(param.getJmmChild(0)), param.get("name"));
+                symbols.add(name);
+            }
 
-            List<Symbol> symbols = method.getChildren("Param").stream().map(param ->
-                    new Symbol(getType(param.getJmmChild(0)), param.get("name"))
-            ).toList();
+            if (method.get("hasEllipsis").equals("true")) {
+                symbols.add(new Symbol(new Type("int", true), method.get("ellipsisName")));
+            }
 
             map.put(method.get("name"), symbols);
-        });
+        }
+        var a = classDecl.getChildren("MethodDecl");
+
+
 
         return map;
     }

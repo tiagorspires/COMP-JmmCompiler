@@ -354,8 +354,9 @@ public class TypeCheck extends AnalysisVisitor {
     private Void visitIfElseStmt(JmmNode ifElseStmt, SymbolTable table) {
         TypeGetter typeCheck = new TypeGetter(method, isStatic);
 
-        JmmNode condition = ifElseStmt.getJmmChild(0);
-        Type a = typeCheck.visit(condition,table);
+        Type a = typeCheck.visit(ifElseStmt.getJmmChild(0), table);
+
+        typeCheck.reports.forEach(this::addReport);
 
         if (!a.equals(TypeGetter.BOOL) && !a.equals(TypeGetter.ANY)) {
             addReport(Report.newError(
