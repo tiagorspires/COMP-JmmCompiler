@@ -21,7 +21,6 @@ public class TypeCheck extends AnalysisVisitor {
     private List<String> methods = new ArrayList<>();
     private List<String> params = new ArrayList<>();
     boolean isStatic;
-    private List<String> returns = new ArrayList<>();
 
 
     @Override
@@ -133,33 +132,6 @@ public class TypeCheck extends AnalysisVisitor {
                     "Return type must be the same as the method return type",
                     null)
             );
-        }
-
-        // print the return the method type and the return type
-         System.out.println(method + " " + table.getReturnType(method).getName() + " " + a.getName() + "afafdasa");
-
-        if(table.getReturnType(method).getName().equals("void") && !a.getName().isEmpty()){
-
-            addReport(Report.newError(
-                    Stage.SEMANTIC,
-                    NodeUtils.getLine(jmmNode),
-                    NodeUtils.getColumn(jmmNode),
-                    "Void type does not have return",
-                    null)
-            );
-        }
-
-        // if there list of returns is empty add the return type to the list otherwise is error because a method because a method can have only one return
-        if(returns.contains(method)){
-            addReport(Report.newError(
-                    Stage.SEMANTIC,
-                    NodeUtils.getLine(jmmNode),
-                    NodeUtils.getColumn(jmmNode),
-                    "Method " + method + " already has a return",
-                    null)
-            );
-        }else{
-            returns.add(method);
         }
 
         return null;
