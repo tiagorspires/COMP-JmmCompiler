@@ -106,20 +106,48 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
 
     private OllirExprResult visitVarRef(JmmNode node, Void unused) {
-
+        StringBuilder computation = new StringBuilder();
+        String methodName = node.getAncestor(METHOD_DECL).map(method -> method.get("name")).orElseThrow();
+        String code = "";
+        String temp = "";
         var id = node.get("name");
-        //System.out.print(" VisitVarRef1:" + node  + "\n");
-        //if(node.get("name").equals(node.get()))
-
 
         Type type = TypeUtils.getExprType(node, table);
-        //System.out.print(" VisitVarRef5:" + type  + "\n");
         String ollirType = OptUtils.toOllirType(type);
 
-        String code = id + ollirType;
-        String computation = id + ollirType;
-        //System.out.println(" VarRef:"+code);
-        return new OllirExprResult(code);
+        boolean Local = false;
+        for(int i = 0; i<table.getLocalVariables(methodName).size(); i++) {
+            if(table.getLocalVariables(methodName).get(i).getName().equals(node.get("name"))) {
+                code = id + ollirType;
+                Local = true;
+            }
+        }
+
+        boolean Param = false;
+        if(!Local) {
+            for (int i = 0; i < table.getParameters(methodName).size(); i++) {
+                if (table.getParameters(methodName).get(i).getName().equals(node.get("name"))) {
+                    code = id + ollirType;
+                    Param = true;
+                }
+            }
+        }
+
+        boolean Field = false;
+        if(!Local && !Param) {
+            for (int i = 0; i < table.getFields().size(); i++) {
+                if (table.getFields().get(i).getName().equals(node.get("name"))) {
+                    code = OptUtils.getTemp() + ollirType;
+                    Field = true;
+                }
+            }
+        }
+
+        if(Field) {
+            computation.append(code).append(SPACE).append(ASSIGN).append(ollirType).append(SPACE).append("getfield(this.").append(table.getClassName()).append(", ").append(id).append(ollirType).append(")").append(ollirType).append(END_STMT);
+        }
+
+        return new OllirExprResult(code, computation);
     }
 
     private OllirExprResult visitFunctionCall(JmmNode node, Void unused) {
@@ -134,6 +162,9 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         Type retType;
         String temp = "";
         OllirExprResult childfunc = new OllirExprResult("", "");
+        boolean Local = false;
+        boolean Param = false;
+        boolean Field = false;
 
         if(table.getReturnType(node.get("name")) != null) {
             retType = table.getReturnType(node.get("name"));
@@ -141,13 +172,69 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             retType = new Type("void", false);
         }
 
+
         if(node.getChildren().size()>1) {
             for(int i=1; i<node.getChildren().size(); i++) {
-                if(node.getChild(i).getKind().equals("FunctionCall") || node.getChild(i).getKind().equals("Length")) {
-                    childfunc = visit(node.getChild(i));
-                }
+                childfunc = visit(node.getChild(i));
+//                if(!(node.getChild(i).getKind().equals("IntegerLiteral") || node.getChild(i).getKind().equals("BooleanLiteral") || node.getChild(i).getKind().equals("ArrayInit"))) {
+//                    for (int j = 0; j < table.getLocalVariables(methodName).size(); j++) {
+//                        if (table.getLocalVariables(methodName).get(j).getName().equals(node.getChild(i).get("name"))) {
+//                            Local = true;
+//                        }
+//                    }
+//
+//                    if (!Local) {
+//                        for (int j = 0; j < table.getParameters(methodName).size(); j++) {
+//                            if (table.getParameters(methodName).get(j).getName().equals(node.getChild(i).get("name"))) {
+//                                Param = true;
+//                            }
+//                        }
+//                    }
+//
+//                    if (!Local && !Param) {
+//                        for (int j = 0; j < table.getFields().size(); j++) {
+//                            if (table.getFields().get(j).getName().equals(node.getChild(i).get("name"))) {
+//                                childfunc = visit(node.getChild(i));
+//                                Field = true;
+//                            }
+//                        }
+//                    }
+//
+//                    if (node.getChild(i).getKind().equals("FunctionCall") || node.getChild(i).getKind().equals("Length") || Field) {
+//                        childfunc = visit(node.getChild(i));
+//                    }
+//                }
+
+//                for (int j = 0; j < table.getLocalVariables(methodName).size(); j++) {
+//                    if (table.getLocalVariables(methodName).get(j).getName().equals(node.getChild(i).get("name"))) {
+//                        Local = true;
+//                    }
+//                }
+//
+//                if (!Local) {
+//                    for (int j = 0; j < table.getParameters(methodName).size(); j++) {
+//                        if (table.getParameters(methodName).get(j).getName().equals(node.getChild(i).get("name"))) {
+//                            Param = true;
+//                        }
+//                    }
+//                }
+//
+//                if (!Local && !Param) {
+//                    for (int j = 0; j < table.getFields().size(); j++) {
+//                        if (table.getFields().get(j).getName().equals(node.getChild(i).get("name"))) {
+//                            childfunc = visit(node.getChild(i));
+//                            Field = true;
+//                        }
+//                    }
+//                }
+//
+//                if (node.getChild(i).getKind().equals("FunctionCall") || node.getChild(i).getKind().equals("Length") || Field) {
+//                    childfunc = visit(node.getChild(i));
+//                }
             }
         }
+
+
         computation.append(childfunc.getComputation());
 
 //        System.out.println(" b:"+table.getReturnType(node.get("name")));
@@ -220,11 +307,16 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         if(node.getChildren().size()>1) {
             for(int i=1; i<node.getChildren().size(); i++) {
                 computation.append(", ");
-                if(node.getChild(i).getKind().equals("FunctionCall")) {
-                    computation.append(childfunc.getCode());
-                }
-                else {
+//                if(node.getChild(i).getKind().equals("FunctionCall") || table.getFields().contains(node.getChild(i)) || Field) {
+//                    computation.append(childfunc.getCode());
+//                }
+//                else {
+//                    computation.append(visit(node.getChild(i)).getCode());
+//                }
+                if(node.getChildren().size() > 2) {
                     computation.append(visit(node.getChild(i)).getCode());
+                } else {
+                    computation.append(childfunc.getCode());
                 }
 
             }

@@ -90,6 +90,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         //code.append(lhs.getCode());
         //if(node.get("var").equals)
+        boolean Local = false;
         for(int i = 0; i<table.getLocalVariables(methodName).size(); i++) {
             if(table.getLocalVariables(methodName).get(i).getName().equals(node.get("var"))) {
                 code.append(table.getLocalVariables(methodName).get(i).getName());
@@ -98,27 +99,49 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
                 } else {
                     code.append(OptUtils.toOllirType(table.getLocalVariables(methodName).get(i).getType()));
                 }
+                Local = true;
             }
         }
 
-        for(int i = 0; i<table.getParameters(methodName).size(); i++) {
-            if(table.getParameters(methodName).get(i).getName().equals(node.get("var"))) {
-                code.append(table.getParameters(methodName).get(i).getName());
-                if(node.getChild(0).getKind().equals("NewClass")){
-                    code.append(OptUtils.toOllirType(new Type(node.getChild(0).get("name"), false)));
-                } else {
-                    code.append(OptUtils.toOllirType(table.getParameters(methodName).get(i).getType()));
+        boolean Param = false;
+        if(!Local) {
+            for (int i = 0; i < table.getParameters(methodName).size(); i++) {
+                if (table.getParameters(methodName).get(i).getName().equals(node.get("var"))) {
+                    code.append(table.getParameters(methodName).get(i).getName());
+                    if (node.getChild(0).getKind().equals("NewClass")) {
+                        code.append(OptUtils.toOllirType(new Type(node.getChild(0).get("name"), false)));
+                    } else {
+                        code.append(OptUtils.toOllirType(table.getParameters(methodName).get(i).getType()));
+                    }
+                    Param = true;
                 }
             }
         }
 
-        code.append(SPACE);
+        if(!Local && !Param) {
+            for (int i = 0; i < table.getFields().size(); i++) {
+                if (table.getFields().get(i).getName().equals(node.get("var"))) {
+//                    code.append(table.getFields().get(i).getName());
+                    code.append("putfield(this.").append(table.getClassName()).append(", ").append(table.getFields().get(i).getName());
+                    if (node.getChild(0).getKind().equals("NewClass")) {
+                        code.append(OptUtils.toOllirType(new Type(node.getChild(0).get("name"), false)));
+                    } else {
+                        code.append(OptUtils.toOllirType(table.getFields().get(i).getType()));
+                    }
+                    code.append(", ").append(rhs.getCode()).append(")").append(".V");
+                }
+            }
+        }
 
-        code.append(ASSIGN);
-        code.append(typeString);
-        code.append(SPACE);
+        if(Local == true || Param == true) {
+            code.append(SPACE);
 
-        code.append(rhs.getCode());
+            code.append(ASSIGN);
+            code.append(typeString);
+            code.append(SPACE);
+
+            code.append(rhs.getCode());
+        }
 
         code.append(END_STMT);
 
@@ -132,7 +155,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         Type retType = table.getReturnType(methodName);
         //System.out.print(" Return qual é?: "+node.getChild(0)+"\n");
         //System.out.print(" Return type: " + retType + "\n");
-        System.out.println(node);
+        //System.out.println(node);
         StringBuilder code = new StringBuilder();
 
         var expr = OllirExprResult.EMPTY;

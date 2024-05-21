@@ -83,19 +83,31 @@ public class TypeUtils {
             return new Type("boolean", false);
         }
 
-
-        //System.out.println(" ola?:"+retType);
-        for(int i = 0; i<table.getParameters(methodName).size(); i++) {
-            if(table.getParameters(methodName).get(i).getName().equals(varRefExpr.get("name"))) {
-                //System.out.println(" parametro:"+table.getParameters(methodName).get(i).getType().getName());
-                retType = table.getParameters(methodName).get(i).getType();
-            }
-        }
-
+        boolean Local = false;
         for(int i = 0; i<table.getLocalVariables(methodName).size(); i++) {
             if(table.getLocalVariables(methodName).get(i).getName().equals(varRefExpr.get("name"))) {
 //                System.out.println(" parametro:"+table.getLocalVariables(methodName).get(i).getType());
                 retType = table.getLocalVariables(methodName).get(i).getType();
+                Local = true;
+            }
+        }
+
+        boolean Param = false;
+        if(!Local) {
+            for (int i = 0; i < table.getParameters(methodName).size(); i++) {
+                if (table.getParameters(methodName).get(i).getName().equals(varRefExpr.get("name"))) {
+                    //System.out.println(" parametro:"+table.getParameters(methodName).get(i).getType().getName());
+                    retType = table.getParameters(methodName).get(i).getType();
+                    Param = true;
+                }
+            }
+        }
+
+        if(!Local && !Param) {
+            for (int i = 0; i < table.getFields().size(); i++) {
+                if (table.getFields().get(i).getName().equals(varRefExpr.get("name"))) {
+                    retType = table.getFields().get(i).getType();
+                }
             }
         }
 
@@ -109,7 +121,6 @@ public class TypeUtils {
         else if(retType.getName().equals(INT_TYPE_NAME)) {
             return new Type(INT_TYPE_NAME, false);
         }
-
 
         else return new Type(INT_TYPE_NAME, false);
     }
