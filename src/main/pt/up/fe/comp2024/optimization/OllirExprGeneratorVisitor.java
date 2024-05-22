@@ -91,6 +91,8 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         String resOllirType = OptUtils.toOllirType(resType);
         String code = OptUtils.getTemp() + resOllirType;
 
+//        if(node.get("op").equals("<") || node.get("op").equals(">"))
+
         computation.append(code).append(SPACE)
                 .append(ASSIGN).append(resOllirType).append(SPACE)
                 .append(lhs.getCode()).append(SPACE);
@@ -151,12 +153,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     }
 
     private OllirExprResult visitFunctionCall(JmmNode node, Void unused) {
-        //System.out.println(" ENTRAS AQUI?");
-//        System.out.println(" node:"+node);
-//        System.out.println(" a:"+node.getChildren());
-//        System.out.println(" metodos:"+table.getMethods());
-//        System.out.println(" Parent:"+node.getParent());
-//        System.out.println(" isto:"+table.getMethods().get(2));
         String methodName = node.getAncestor(METHOD_DECL).map(method -> method.get("name")).orElseThrow();
         StringBuilder computation = new StringBuilder();
         Type retType;
@@ -165,6 +161,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         boolean Local = false;
         boolean Param = false;
         boolean Field = false;
+
 
         if(table.getReturnType(node.get("name")) != null) {
             retType = table.getReturnType(node.get("name"));
@@ -335,25 +332,19 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         }
 
         computation.append(END_STMT);
-//        System.out.println(" Code Functional call:"+code);
-//        System.out.println(" Code Functional callRet:"+codeRet);
-        //System.out.print(code);
-//        System.out.println(" FuncCall Computation:"+computation);
+
         return new OllirExprResult(code, computation.toString());
     }
 
     private OllirExprResult visitNewClass(JmmNode node, Void unused) {
-//        System.out.println(" ENTRAS AQUI?:"+node);
-//        System.out.println(" A:"+node.getParent());
         String methodName = node.getAncestor(METHOD_DECL).map(method -> method.get("name")).orElseThrow();
-//        System.out.println(" variaveis:"+table.getLocalVariables(methodName).get(3));
         StringBuilder computation = new StringBuilder();
         String retType = "." + node.get("name");
         String temp = "";
         String code = "";
 
         temp = OptUtils.getTemp()  + retType;
-//        System.out.println(" temp:"+temp);
+
         computation.append(temp).append(SPACE);
 
         if(table.getMethods().contains(node.get("name"))) {
@@ -394,7 +385,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     }
 
     private OllirExprResult visitNegation(JmmNode node, Void unused) {
-        //System.out.println(" negation:"+node);
         Type resType = TypeUtils.getExprType(node, table);
         String resOllirType = OptUtils.toOllirType(resType);
         String code = node.get("value") + resOllirType + SPACE + visit(node.getChild(0)).getCode();
@@ -403,7 +393,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     }
 
     private OllirExprResult visitNewArray(JmmNode node, Void unused) {
-//        System.out.println(" NewArray:"+node);
         Type resType = TypeUtils.getExprType(node, table);
         String resOllirType = OptUtils.toOllirType(resType);
         String code = "new(array, " + visit(node.getChild(0)).getCode() + ")" + resOllirType ;
@@ -411,7 +400,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     }
 
     private OllirExprResult visitArrayAccess(JmmNode node, Void unused) {
-//        System.out.println(" NewArray:"+node);
         StringBuilder computation = new StringBuilder();
         String temp = "";
         String code = "";
@@ -419,19 +407,19 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         String resOllirType = OptUtils.toOllirType(resType);
         Type retArrayAcces = TypeUtils.getExprType(node, table);
         String retArrayAccesOllirType = OptUtils.toOllirType(retArrayAcces);
-        temp = OptUtils.getTemp() + resOllirType;
-//        System.out.println(" temp:"+temp);
+        temp = OptUtils.getTemp() + retArrayAccesOllirType;
+
         computation.append(temp).append(SPACE);
 
         code = temp;
 
-        computation.append(ASSIGN).append(resOllirType).append(SPACE);
+        computation.append(ASSIGN).append(retArrayAccesOllirType).append(SPACE);
 
         if(node.getParent().getKind().equals("ReturnStmt")) {
-            computation.append(node.getChild(0).get("name")).append(retArrayAccesOllirType).append("[").append(visit(node.getChild(1)).getCode()).append("]").append(resOllirType).append(END_STMT);
+            computation.append(node.getChild(0).get("name")).append("[").append(visit(node.getChild(1)).getCode()).append("]").append(retArrayAccesOllirType).append(END_STMT);
         }
         else {
-            computation.append(node.getChild(0).get("name")).append("[").append(visit(node.getChild(1)).getCode()).append("]").append(resOllirType).append(END_STMT);
+            computation.append(node.getChild(0).get("name")).append("[").append(visit(node.getChild(1)).getCode()).append("]").append(retArrayAccesOllirType).append(END_STMT);
         }
 
         System.out.println(" Array Access:"+code);
@@ -440,7 +428,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     }
 
     private OllirExprResult visitArrayInit(JmmNode node, Void unused) {
-        System.out.println(" NewArray:"+node);
         String methodName = node.getAncestor(METHOD_DECL).map(method -> method.get("name")).orElseThrow();
         StringBuilder computation = new StringBuilder();
         String temp = "";
@@ -450,14 +437,12 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         for(int i = 0; i<table.getParameters(methodName).size(); i++) {
             if(table.getParameters(methodName).get(i).getName().equals(node.getParent().get("var"))) {
-                //System.out.println(" parametro:"+table.getParameters(methodName).get(i).getType().getName());
                 retType = table.getParameters(methodName).get(i).getType();
             }
         }
 
         for(int i = 0; i<table.getLocalVariables(methodName).size(); i++) {
             if(table.getLocalVariables(methodName).get(i).getName().equals(node.getParent().get("var"))) {
-                //System.out.println(" parametro:"+table.getParameters(methodName).get(i).getType().getName());
                 retType = table.getLocalVariables(methodName).get(i).getType();
             }
         }

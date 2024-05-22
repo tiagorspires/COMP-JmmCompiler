@@ -38,7 +38,7 @@ public class TypeUtils {
             case FUNCTION_CALL -> getVarExprType(expr, table);
             case NEGATION -> getVarExprType(expr, table);
             case NEW_ARRAY -> new Type(INT_TYPE_NAME, true);
-            case ARRAY_ACCESS -> new Type("int", true);
+            case ARRAY_ACCESS -> new Type("int", false);
             case ARRAY_INIT -> new Type("int", true);
             case LENGTH -> new Type("int", false);
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");

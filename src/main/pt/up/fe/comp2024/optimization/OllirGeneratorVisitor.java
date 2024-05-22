@@ -198,6 +198,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 //        System.out.println(" Aqui2:"+table.getMethods());
         boolean retExists = false;
         StringBuilder code = new StringBuilder(".method ");
+        boolean hasEllipsis = NodeUtils.getBooleanAttribute(node, "hasEllipsis", "false");
 
         boolean isPublic = NodeUtils.getBooleanAttribute(node, "isPublic", "false");
 
@@ -207,7 +208,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         boolean isStatic = NodeUtils.getBooleanAttribute(node, "isStatic", "false");
 
-        if(isStatic) {
+        if (isStatic) {
             code.append("static ");
         }
 
@@ -216,7 +217,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         code.append(name);
 
         // param
-        if(PARAM.check(node.getChild(1))) {
+        if (PARAM.check(node.getChild(1)) || hasEllipsis) {
 //            var Param = 0;
 //            for (int i = Param; i < node.getNumChildren(); i++) {
 //                var paramCode = visit(node.getJmmChild(i));
@@ -225,14 +226,14 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 //            }
             code.append("(");
             var paramCode = table.getParameters(name);
-            for(Symbol param : paramCode) {
+            for (Symbol param : paramCode) {
                 //System.out.print(" Node Param:"+param+"\n");
                 code.append(param.getName());
 //                if(param.getType().isArray())
 //                    code.append(".array");
                 var paramType = OptUtils.toOllirType(param.getType());
                 code.append(paramType);
-                if(!(paramCode.indexOf(param) == (paramCode.size() -1))){
+                if (!(paramCode.indexOf(param) == (paramCode.size() - 1))) {
                     code.append(", ");
                 }
             }
