@@ -249,45 +249,6 @@ public class TypeCheck extends AnalysisVisitor {
             );
         }
 
-        if (table.getReturnType(this.method).equals(new Type("void",false))){
-            if (method.get("hasReturn").equals("true")){
-                addReport(Report.newError(
-                        Stage.SEMANTIC,
-                        NodeUtils.getLine(method),
-                        NodeUtils.getColumn(method),
-                        "Method " + this.method + " must not have a return statement",
-                        null)
-                );
-            }
-        }else {
-            if (!method.get("hasReturn").equals("true")){
-                addReport( Report.newError(
-                        Stage.SEMANTIC,
-                        NodeUtils.getLine(method),
-                        NodeUtils.getColumn(method),
-                        "Method " + this.method + " must have a return statement",
-                        null)
-                );
-            }else {
-                TypeGetter typeCheck = new TypeGetter(this.method, isStatic);
-
-                Type t = typeCheck.visit(method.getJmmChild(method.getNumChildren() - 1), table);
-
-                typeCheck.reports.forEach(this::addReport);
-
-                if (!t.equals(table.getReturnType(this.method)) && !t.equals(TypeGetter.ANY)) {
-                    addReport(Report.newError(
-                            Stage.SEMANTIC,
-                            NodeUtils.getLine(method),
-                            NodeUtils.getColumn(method),
-                            "Return type must be the same as the method return type",
-                            null)
-                    );
-                }
-            }
-
-        }
-
 
         return null;
     }
