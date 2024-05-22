@@ -81,15 +81,16 @@ type
     | VOID #Void //
     ;
 
-methodDecl locals[boolean isPublic=false, boolean isStatic=false, boolean hasEllipsis=false]
+methodDecl locals[boolean isPublic=false, boolean isStatic=false, boolean hasEllipsis=false, boolean hasReturn=false]
     :(PUBLIC {$isPublic=true;})? (STATIC {$isStatic=true;})?
                    type name=ID
                    LPAREN (param (COMMA param)*) (COMMA INT ELLIPSIS {$hasEllipsis=true;} ellipsisName=ID)? RPAREN
-                   LCURLY varDecl* stmt* RCURLY
+                   LCURLY varDecl* stmt* (RETURN {$hasReturn=true;} expr SEMI)? RCURLY
+
     | (PUBLIC {$isPublic=true;})? (STATIC {$isStatic=true;})?
                     type name=ID
                     LPAREN (INT ELLIPSIS {$hasEllipsis=true;} ellipsisName=ID)? RPAREN
-                    LCURLY varDecl* stmt* RCURLY
+                    LCURLY varDecl* stmt* (RETURN {$hasReturn=true;} expr SEMI)? RCURLY
     ;
 
 param
@@ -103,7 +104,6 @@ stmt
     | WHILE LPAREN expr RPAREN stmt #WhileStmt //
     | var= ID EQUALS expr SEMI #AssignStmt //
     | var= ID LSQPAREN expr RSQPAREN EQUALS expr SEMI #ArrayAssign //
-    | RETURN expr SEMI #ReturnStmt
     ;
 
 expr
