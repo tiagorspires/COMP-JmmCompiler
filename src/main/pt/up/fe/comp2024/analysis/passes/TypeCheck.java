@@ -145,9 +145,9 @@ public class TypeCheck extends AnalysisVisitor {
 
 
         if (!variable.isPresent()){
-            variable  = table.getFields().stream().filter((v) -> v.getName().equals(jmmNode.get("var"))).findFirst();
+            variable = table.getParameters(method).stream().filter((v) -> v.getName().equals(jmmNode.get("var"))).findFirst();
             if (!variable.isPresent()){
-                variable = table.getParameters(method).stream().filter((v) -> v.getName().equals(jmmNode.get("var"))).findFirst();
+                variable  = table.getFields().stream().filter((v) -> v.getName().equals(jmmNode.get("var"))).findFirst();
                 if (!variable.isPresent()){
                     addReport(Report.newError(
                             Stage.SEMANTIC,

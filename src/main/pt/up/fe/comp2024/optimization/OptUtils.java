@@ -15,6 +15,10 @@ import static pt.up.fe.comp2024.ast.Kind.TYPE;
 public class OptUtils {
     private static int tempNumber = -1;
 
+    private static int ifNumber = -1;
+
+    private static int whileNumber = -1;
+
     public static String getTemp() {
 
         return getTemp("tmp");
@@ -31,6 +35,17 @@ public class OptUtils {
         return tempNumber;
     }
 
+    public static int getNextIfNum() {
+
+        ifNumber += 1;
+        return ifNumber;
+    }
+
+    public static int getNextWhileNum() {
+
+        whileNumber += 1;
+        return whileNumber;
+    }
 
     public static String toOllirType(JmmNode typeNode) {
 

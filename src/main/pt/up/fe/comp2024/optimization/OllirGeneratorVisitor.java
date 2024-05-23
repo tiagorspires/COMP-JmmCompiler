@@ -52,6 +52,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit("Id", this::visitId);
         addVisit("ArrayAssign", this::visitArrayAssign);
         addVisit("Array", this::visitArray);
+        addVisit("IfElseStmt", this::visitIfElse);
+        addVisit("WhileStmt", this::visitWhile);
+        addVisit("StmtScope", this::visitStmt);
 
         setDefaultVisit(this::defaultVisit);
     }
@@ -561,6 +564,42 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         return code.toString();
     }
 
+    private String visitIfElse(JmmNode node, Void unused) {
+        StringBuilder code = new StringBuilder();
+        var ola = visit(node.getChild(1));
+        String ifbody = "ifbody_";
+        String end = "endif_";
+        System.out.println(ola);
+        if(node.getChild(0).getKind().equals("BinaryOp")) {
+            code.append(exprVisitor.visit(node.getChild(0)).getComputation());
+        } else {
+            int ifNum = OptUtils.getNextIfNum();
+            code.append("if( ").append(exprVisitor.visit(node.getChild(0)).getCode()).append(" ) ").append("goto").append(ifbody).append(ifNum).append(END_STMT);
+
+            code.append(visit(node.getChild(2)));
+            code.append("goto ").append(end).append(ifNum).append(END_STMT);
+            code.append(ifbody).append(ifNum).append(END_STMT);
+            code.append(visit(node.getChild(1)));
+            code.append(end).append(ifNum).append(END_STMT);
+        }
+
+        return code.toString();
+    }
+
+    private String visitWhile(JmmNode node, Void unused) {
+        StringBuilder code = new StringBuilder();
+
+
+        return code.toString();
+    }
+
+    private String visitStmt(JmmNode node, Void unused) {
+        StringBuilder code = new StringBuilder();
+
+        code.append(exprVisitor.visit(node.getChild(0)).getComputation());
+
+        return code.toString();
+    }
 
 
 

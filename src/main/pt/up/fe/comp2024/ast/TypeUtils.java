@@ -115,7 +115,7 @@ public class TypeUtils {
         if(retType.isArray()) {
             return new Type(retType.getName(), true);
         }
-        else if(retType.getName().equals("boolean")) {
+        else if(retType.getName().equals("bool")) {
             return new Type("boolean", false);
         }
         else if(retType.getName().equals(INT_TYPE_NAME)) {
