@@ -574,13 +574,13 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             code.append(exprVisitor.visit(node.getChild(0)).getComputation());
         } else {
             int ifNum = OptUtils.getNextIfNum();
-            code.append("if( ").append(exprVisitor.visit(node.getChild(0)).getCode()).append(" ) ").append("goto").append(ifbody).append(ifNum).append(END_STMT);
+            code.append("if( ").append(exprVisitor.visit(node.getChild(0)).getCode()).append(" ) ").append("goto ").append(ifbody).append(ifNum).append(END_STMT);
 
             code.append(visit(node.getChild(2)));
             code.append("goto ").append(end).append(ifNum).append(END_STMT);
-            code.append(ifbody).append(ifNum).append(END_STMT);
+            code.append(ifbody).append(ifNum).append(":\n");
             code.append(visit(node.getChild(1)));
-            code.append(end).append(ifNum).append(END_STMT);
+            code.append(end).append(ifNum).append(":\n");
         }
 
         return code.toString();

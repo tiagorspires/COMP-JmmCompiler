@@ -147,6 +147,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         boolean Local = false;
         for(int i = 0; i<table.getLocalVariables(methodName).size(); i++) {
             if(table.getLocalVariables(methodName).get(i).getName().equals(node.get("name"))) {
+                ollirType = OptUtils.toOllirType(table.getLocalVariables(methodName).get(i).getType());
                 code = id + ollirType;
                 Local = true;
             }
@@ -156,6 +157,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         if(!Local) {
             for (int i = 0; i < table.getParameters(methodName).size(); i++) {
                 if (table.getParameters(methodName).get(i).getName().equals(node.get("name"))) {
+                    ollirType = OptUtils.toOllirType(table.getParameters(methodName).get(i).getType());
                     code = id + ollirType;
                     Param = true;
                 }
@@ -166,6 +168,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         if(!Local && !Param) {
             for (int i = 0; i < table.getFields().size(); i++) {
                 if (table.getFields().get(i).getName().equals(node.get("name"))) {
+                    ollirType = OptUtils.toOllirType(table.getFields().get(i).getType());
                     code = OptUtils.getTemp() + ollirType;
                     Field = true;
                 }
