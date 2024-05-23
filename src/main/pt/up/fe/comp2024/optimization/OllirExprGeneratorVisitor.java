@@ -102,7 +102,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             computation.append("if(").append(lhs.getCode()).append(SPACE);
 
             computation.append(node.get("op")).append(OptUtils.toOllirType(type)).append(SPACE)
-                    .append(rhs.getCode()).append(") ").append("goto ").append("true_").append(ifNum).append("\n");
+                    .append(rhs.getCode()).append(") ").append("goto ").append("true_").append(ifNum).append(END_STMT);
 
             computation.append(code).append(SPACE)
                     .append(ASSIGN).append(resOllirType).append(SPACE)
