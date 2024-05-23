@@ -10,6 +10,6 @@
 
 - Alexandre Felgueiras de Morais - 27.5 %
 - Nuno Jorge da Costa Ramos - 27.5 %
-- Tiago Rocha Silveira Pires 45 %
+- Tiago Rocha Silveira Pires - 45 %
 
 ## Self-Assessment 
