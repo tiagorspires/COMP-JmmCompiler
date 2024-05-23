@@ -109,17 +109,18 @@ public class TypeUtils {
         }
 
 
-        if(retType.isArray()) {
-            return new Type(retType.getName(), true);
-        }
-        else if(retType.getName().equals("bool")) {
-            return new Type("boolean", false);
-        }
-        else if(retType.getName().equals(INT_TYPE_NAME)) {
-            return new Type(INT_TYPE_NAME, false);
-        }
-
-        else return new Type(INT_TYPE_NAME, false);
+//        if(retType.isArray()) {
+//            return new Type(retType.getName(), true);
+//        }
+//        else if(retType.getName().equals("bool")) {
+//            return new Type("boolean", false);
+//        }
+//        else if(retType.getName().equals(INT_TYPE_NAME)) {
+//            return new Type(INT_TYPE_NAME, false);
+//        }
+//
+//        else return new Type(INT_TYPE_NAME, false);
+        return new Type(retType.getName(), retType.isArray());
     }
 
 

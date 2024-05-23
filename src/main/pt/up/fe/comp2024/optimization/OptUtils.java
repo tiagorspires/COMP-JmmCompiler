@@ -19,6 +19,8 @@ public class OptUtils {
 
     private static int whileNumber = -1;
 
+    private static int conditionalNumber = -1;
+
     public static String getTemp() {
 
         return getTemp("tmp");
@@ -45,6 +47,12 @@ public class OptUtils {
 
         whileNumber += 1;
         return whileNumber;
+    }
+
+    public static int getNextCondNumber() {
+
+        conditionalNumber += 1;
+        return conditionalNumber;
     }
 
     public static String toOllirType(JmmNode typeNode) {

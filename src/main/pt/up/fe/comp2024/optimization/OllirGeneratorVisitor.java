@@ -566,14 +566,23 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
     private String visitIfElse(JmmNode node, Void unused) {
         StringBuilder code = new StringBuilder();
-        var ola = visit(node.getChild(1));
         String ifbody = "ifbody_";
         String end = "endif_";
-        System.out.println(ola);
+        int ifNum = OptUtils.getNextIfNum();
+
         if(node.getChild(0).getKind().equals("BinaryOp")) {
-            code.append(exprVisitor.visit(node.getChild(0)).getComputation());
+            var binOp = exprVisitor.visit(node.getChild(0));
+            code.append(binOp.getComputation());
+
+            code.append("if( ").append(binOp.getCode()).append(" ) ").append("goto ").append(ifbody).append(ifNum).append(END_STMT);
+
+            code.append(visit(node.getChild(2)));
+            code.append("goto ").append(end).append(ifNum).append(END_STMT);
+            code.append(ifbody).append(ifNum).append(":\n");
+            code.append(visit(node.getChild(1)));
+            code.append(end).append(ifNum).append(":\n");
         } else {
-            int ifNum = OptUtils.getNextIfNum();
+
             code.append("if( ").append(exprVisitor.visit(node.getChild(0)).getCode()).append(" ) ").append("goto ").append(ifbody).append(ifNum).append(END_STMT);
 
             code.append(visit(node.getChild(2)));
@@ -583,11 +592,38 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             code.append(end).append(ifNum).append(":\n");
         }
 
+
         return code.toString();
     }
 
     private String visitWhile(JmmNode node, Void unused) {
         StringBuilder code = new StringBuilder();
+        String whilebody = "whilebody_";
+        String end = "endwhile_";
+        int ifNum = OptUtils.getNextWhileNum();
+
+        if(node.getChild(0).getKind().equals("BinaryOp")) {
+            code.append("Loop:\n");
+            var binOp = exprVisitor.visit(node.getChild(0));
+            code.append(binOp.getComputation());
+
+            code.append("if( ").append(binOp.getCode()).append(" ) ").append("goto ").append(whilebody).append(ifNum).append(END_STMT);
+
+            code.append("goto ").append(end).append(ifNum).append(END_STMT);
+            code.append(whilebody).append(ifNum).append(":\n");
+            code.append(visit(node.getChild(1)));
+            code.append("goto Loop").append(END_STMT);
+            code.append(end).append(ifNum).append(":\n");
+        } else {
+            code.append("Loop:\n");
+            code.append("if( ").append(exprVisitor.visit(node.getChild(0)).getCode()).append(" ) ").append("goto ").append(whilebody).append(ifNum).append(END_STMT);
+
+            code.append("goto ").append(end).append(ifNum).append(END_STMT);
+            code.append(whilebody).append(ifNum).append(":\n");
+            code.append(visit(node.getChild(1)));
+            code.append("goto Loop").append(END_STMT);
+            code.append(end).append(ifNum).append(":\n");
+        }
 
 
         return code.toString();
@@ -596,7 +632,12 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     private String visitStmt(JmmNode node, Void unused) {
         StringBuilder code = new StringBuilder();
 
-        code.append(exprVisitor.visit(node.getChild(0)).getComputation());
+        if(node.getChild(0).getKind().equals("ifElseStmt") || node.getChild(0).getKind().equals("WhileStmt")) {
+            code.append(visit(node.getChild(0)));
+        } else {
+            code.append(exprVisitor.visit(node.getChild(0)).getComputation());
+            code.append(visit(node.getChild(0)));
+        }
 
         return code.toString();
     }
