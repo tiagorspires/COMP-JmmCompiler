@@ -5,6 +5,7 @@ import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.PreorderJmmVisitor;
+import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
 import java.util.ArrayList;
@@ -207,9 +208,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         Type retType;
         String temp = "";
         OllirExprResult childfunc = new OllirExprResult("", "");
-        boolean Local = false;
-        boolean Param = false;
-        boolean Field = false;
 
 
         if(table.getReturnType(node.get("name")) != null) {
@@ -222,71 +220,15 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         if(node.getChildren().size()>1) {
             for(int i=1; i<node.getChildren().size(); i++) {
                 childfunc = visit(node.getChild(i));
-//                if(!(node.getChild(i).getKind().equals("IntegerLiteral") || node.getChild(i).getKind().equals("BooleanLiteral") || node.getChild(i).getKind().equals("ArrayInit"))) {
-//                    for (int j = 0; j < table.getLocalVariables(methodName).size(); j++) {
-//                        if (table.getLocalVariables(methodName).get(j).getName().equals(node.getChild(i).get("name"))) {
-//                            Local = true;
-//                        }
-//                    }
-//
-//                    if (!Local) {
-//                        for (int j = 0; j < table.getParameters(methodName).size(); j++) {
-//                            if (table.getParameters(methodName).get(j).getName().equals(node.getChild(i).get("name"))) {
-//                                Param = true;
-//                            }
-//                        }
-//                    }
-//
-//                    if (!Local && !Param) {
-//                        for (int j = 0; j < table.getFields().size(); j++) {
-//                            if (table.getFields().get(j).getName().equals(node.getChild(i).get("name"))) {
-//                                childfunc = visit(node.getChild(i));
-//                                Field = true;
-//                            }
-//                        }
-//                    }
-//
-//                    if (node.getChild(i).getKind().equals("FunctionCall") || node.getChild(i).getKind().equals("Length") || Field) {
-//                        childfunc = visit(node.getChild(i));
-//                    }
-//                }
-
-//                for (int j = 0; j < table.getLocalVariables(methodName).size(); j++) {
-//                    if (table.getLocalVariables(methodName).get(j).getName().equals(node.getChild(i).get("name"))) {
-//                        Local = true;
-//                    }
-//                }
-//
-//                if (!Local) {
-//                    for (int j = 0; j < table.getParameters(methodName).size(); j++) {
-//                        if (table.getParameters(methodName).get(j).getName().equals(node.getChild(i).get("name"))) {
-//                            Param = true;
-//                        }
-//                    }
-//                }
-//
-//                if (!Local && !Param) {
-//                    for (int j = 0; j < table.getFields().size(); j++) {
-//                        if (table.getFields().get(j).getName().equals(node.getChild(i).get("name"))) {
-//                            childfunc = visit(node.getChild(i));
-//                            Field = true;
-//                        }
-//                    }
-//                }
-//
-//                if (node.getChild(i).getKind().equals("FunctionCall") || node.getChild(i).getKind().equals("Length") || Field) {
-//                    childfunc = visit(node.getChild(i));
-//                }
             }
         }
 
 
         computation.append(childfunc.getComputation());
 
-//        System.out.println(" b:"+table.getReturnType(node.get("name")));
 
         String code = "";
-        if(node.getParent().getKind().equals("BinaryOp") || node.getParent().getKind().equals("AssignStmt") || node.getParent().getKind().equals("FunctionCall")) {
+        if(node.getParent().getKind().equals("BinaryOp") || node.getParent().getKind().equals("AssignStmt") || node.getParent().getKind().equals("FunctionCall") || node.getParent().getKind().equals("ArrayAccess")) {
             if (retType != null) {
                 temp = OptUtils.getTemp() + OptUtils.toOllirType(retType);
             } else {
@@ -322,10 +264,8 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             }
         }
 
-//        System.out.println(" BBBBBBBBBBBBBB:"+table.getImports().size());
-//        System.out.println(" CCCCCCCCCCCCCC:"+node.getChild(0));
+
         if(node.getChild(0).hasAttribute("name")) {
-            //System.out.println(" BBBBBBBBBBBBBB:"+table.getImports().get(0).contains(node.getChild(0).get("name")));
 //            for(int i = 0;i<table.getImports().size();i++) {
 //                if (table.getImports().get(i).contains(node.getChild(0).get("name"))) {
 //                    computation.append(node.getChild(0).get("name"));
@@ -348,7 +288,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         computation.append(", ");
 
         computation.append("\""+node.get("name")+"\"");
-        //System.out.println(" AAAAAAAAAAAAAA:"+node.getChildren());
 
         if(node.getChildren().size()>1) {
             for(int i=1; i<node.getChildren().size(); i++) {
@@ -361,6 +300,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 //                }
                 if(node.getChildren().size() > 2) {
                     computation.append(visit(node.getChild(i)).getCode());
+//                    System.out.println("ASDASDASDADSA:"+ table.getParameters(node.get("name")));
                 } else {
                     computation.append(childfunc.getCode());
                 }
@@ -458,17 +398,50 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         String retArrayAccesOllirType = OptUtils.toOllirType(retArrayAcces);
         temp = OptUtils.getTemp() + retArrayAccesOllirType;
 
-        computation.append(temp).append(SPACE);
+//        if(node.getDescendants().get(1).getKind().equals("FunctionCall")) {
+//            var funcCall = visit(node.getChild(1));
+//            computation.append(funcCall.getComputation());
+//
+//            computation.append(temp).append(SPACE);
+//
+//            code = temp;
+//
+//            computation.append(ASSIGN).append(retArrayAccesOllirType).append(SPACE);
+//
+//            computation.append(node.getChild(0).get("name")).append("[").append(funcCall.getCode()).append("]").append(retArrayAccesOllirType).append(END_STMT);
+//        }
+//        else {
+//            computation.append(temp).append(SPACE);
+//
+//            code = temp;
+//
+//            computation.append(ASSIGN).append(retArrayAccesOllirType).append(SPACE);
+//
+//            computation.append(node.getChild(0).get("name")).append("[").append(visit(node.getChild(1)).getCode()).append("]").append(retArrayAccesOllirType).append(END_STMT);
+//        }
 
-        code = temp;
+        if(node.getDescendants().get(1).getKind().equals("IntegerLiteral") || node.getDescendants().get(1).getKind().equals("BooleanLiteral") || node.getDescendants().get(1).getKind().equals("VarRefExpr")) {
+            computation.append(temp).append(SPACE);
 
-        computation.append(ASSIGN).append(retArrayAccesOllirType).append(SPACE);
+            code = temp;
 
-        if(node.getParent().getKind().equals("ReturnStmt")) {
+            computation.append(ASSIGN).append(retArrayAccesOllirType).append(SPACE);
+
             computation.append(node.getChild(0).get("name")).append("[").append(visit(node.getChild(1)).getCode()).append("]").append(retArrayAccesOllirType).append(END_STMT);
+
         }
         else {
-            computation.append(node.getChild(0).get("name")).append("[").append(visit(node.getChild(1)).getCode()).append("]").append(retArrayAccesOllirType).append(END_STMT);
+            var funcCall = visit(node.getChild(1));
+            computation.append(funcCall.getComputation());
+
+            computation.append(temp).append(SPACE);
+
+            code = temp;
+
+            computation.append(ASSIGN).append(retArrayAccesOllirType).append(SPACE);
+
+            computation.append(node.getChild(0).get("name")).append("[").append(funcCall.getCode()).append("]").append(retArrayAccesOllirType).append(END_STMT);
+
         }
 
         System.out.println(" Array Access:"+code);
@@ -484,17 +457,21 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         Type retType = TypeUtils.getExprType(node.getChild(0), table);
         String arrayType = OptUtils.toOllirType(retType);
 
-        for(int i = 0; i<table.getParameters(methodName).size(); i++) {
-            if(table.getParameters(methodName).get(i).getName().equals(node.getParent().get("var"))) {
-                retType = table.getParameters(methodName).get(i).getType();
+
+        if(!(node.getParent().getKind().equals("FunctionCall"))) {
+            for (int i = 0; i < table.getParameters(methodName).size(); i++) {
+                if (table.getParameters(methodName).get(i).getName().equals(node.getParent().get("var"))) {
+                    retType = table.getParameters(methodName).get(i).getType();
+                }
+            }
+
+            for (int i = 0; i < table.getLocalVariables(methodName).size(); i++) {
+                if (table.getLocalVariables(methodName).get(i).getName().equals(node.getParent().get("var"))) {
+                    retType = table.getLocalVariables(methodName).get(i).getType();
+                }
             }
         }
 
-        for(int i = 0; i<table.getLocalVariables(methodName).size(); i++) {
-            if(table.getLocalVariables(methodName).get(i).getName().equals(node.getParent().get("var"))) {
-                retType = table.getLocalVariables(methodName).get(i).getType();
-            }
-        }
 
         String resOllirType = OptUtils.toOllirType(retType);
 
