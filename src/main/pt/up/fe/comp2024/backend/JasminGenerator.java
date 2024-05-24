@@ -378,7 +378,7 @@ public class JasminGenerator {
         code.append(TAB).append(".limit stack ").append(maxStack).append(NL);
         code.append(TAB).append(".limit locals ").append(maxLocals).append(NL);
         //aload_0 if it's an intance methos just don't know how to check
-        //code.append(TAB).append("aload 0").append(NL);
+        code.append(TAB).append("aload 0").append(NL);
 
         for (var inst : method.getInstructions()) {
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
