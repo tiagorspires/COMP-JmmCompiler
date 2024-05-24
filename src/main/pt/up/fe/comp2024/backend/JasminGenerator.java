@@ -591,46 +591,16 @@ public class JasminGenerator {
     private int calculateMaxStackDepth(Method method) {
         int maxStack = 0;
         int currentStack = 0;
-        for (var instruction : method.getInstructions()) {
-            switch (instruction.getInstType()) {
-                case ASSIGN:
-                    currentStack += 1;
-                    break;
-                case CALL:
-                    CallInstruction callInstruction = (CallInstruction) instruction;
-                    int argCount = callInstruction.getArguments().size();
-                    currentStack -= argCount; // Pops arguments
-                    if (callInstruction.getInvocationType().toString().equals("NEW")) {
-                        currentStack += 1;
-                    } else if (callInstruction.getReturnType() != null) {
-                        currentStack += 1;
-                    }
-                    break;
-                case GOTO:
-                    break;
-                case BRANCH:
-                    break;
-                case RETURN:
-                    break;
-                case PUTFIELD:
-                    currentStack -= 1;
-                    break;
-                case GETFIELD:
-                    currentStack += 1;
-                    break;
-                case UNARYOPER:
-                    break;
-                case BINARYOPER:
-                    currentStack -= 1;
-                    break;
-                case NOPER:
-                    break;
+        for (var inst : method.getInstructions()) {
+            if (inst instanceof BinaryOpInstruction) {
+                currentStack -= 1;
+            } else{
+                currentStack += 1;
             }
             if (currentStack > maxStack) {
                 maxStack = currentStack;
             }
         }
-
         return maxStack;
     }
 
