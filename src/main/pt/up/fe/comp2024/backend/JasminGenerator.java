@@ -194,7 +194,7 @@ public class JasminGenerator {
                 code.append("/").append((((LiteralElement)callInstruction.getMethodName()).getLiteral()).substring(1, (((LiteralElement)callInstruction.getMethodName()).getLiteral()).length()-1)).append("(").append(arguments).append(")").append(returnType).append(NL);
                 return code.toString();
             case "arraylength":
-                code.append(generators.apply(callInstruction.getCaller()));
+                //code.append(generators.apply(callInstruction.getCaller()));
                 code.append("arraylength").append(NL);
                 return code.toString();
             default:
