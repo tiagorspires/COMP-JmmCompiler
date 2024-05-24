@@ -92,36 +92,44 @@ public class JasminGenerator {
         return code.toString();
     }
 
-    private String generateOpCond(OpCondInstruction opCondInstruction){
+    private String generateOpCond(OpCondInstruction opCondInstruction) {
         var code = new StringBuilder();
         code.append(generators.apply(opCondInstruction.getCondition().getOperands().get(0)));
         code.append(generators.apply(opCondInstruction.getCondition().getOperands().get(1)));
-
-        switch (opCondInstruction.getCondition().getOperation().getOpType().toString()){
+        switch (opCondInstruction.getCondition().getOperation().getOpType().toString()) {
             case "LTH":
                 code.append("isub ").append(NL);
+                code.append("if_icmplt_").append(opCondInstruction.getLabel()).append(":").append(NL);
                 break;
             case "GTH":
                 code.append("iadd ").append(NL);
+                code.append("if_icmpgt_").append(opCondInstruction.getLabel()).append(":").append(NL);
                 break;
             case "EQ":
                 code.append("ieq ").append(NL);
+                code.append("if_icmpeq_").append(opCondInstruction.getLabel()).append(":").append(NL);
                 break;
             case "NEQ":
                 code.append("ine ").append(NL);
+                code.append("if_icmpne_").append(opCondInstruction.getLabel()).append(":").append(NL);
                 break;
             case "LTE":
                 code.append("isub ").append(NL);
+                code.append("if_icmple_").append(opCondInstruction.getLabel()).append(":").append(NL);
                 break;
             case "GTE":
                 code.append("iadd ").append(NL);
+                code.append("if_icmpge_").append(opCondInstruction.getLabel()).append(":").append(NL);
                 break;
-            case"ANDB":
+            default:
+                code.append("TYPE NOT YET IMPLEMENTED OPCI").append(NL);
+            case "ANDB":
                 code.append("iand ").append(NL);
                 break;
         }
         return code.toString();
     }
+
     private String callInstruction(CallInstruction callInstruction) {
         var code = new StringBuilder();
         String returnType= this.getType(callInstruction.getReturnType());
@@ -129,7 +137,7 @@ public class JasminGenerator {
         if(!(callInstruction.getArguments().isEmpty())) {
             for (int i = 0; i < callInstruction.getArguments().size(); i++) {
                 arguments.append(this.getType(callInstruction.getArguments().get(i).getType()));
-                //code.append(this.generateOperand((Operand) callInstruction.getArguments().get(i)));
+                code.append(generators.apply(callInstruction.getArguments().get(i)));
             }
         }
         switch(callInstruction.getInvocationType().toString()){
@@ -307,7 +315,6 @@ public class JasminGenerator {
         }
         code.append(NL);
 
-        // generate a single constructor method
         var constructor = new StringBuilder();
         if (!(superName== null)){
             constructor.append(".method public <init>()V").append(NL).append(TAB).append("aload_0").append(NL).append(TAB).append("invokespecial ").append(superName).append("/<init>()V").append(NL).append(TAB).append("return").append(NL).append(".end method");
