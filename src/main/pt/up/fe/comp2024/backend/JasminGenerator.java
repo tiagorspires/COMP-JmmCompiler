@@ -209,6 +209,9 @@ public class JasminGenerator {
             case "INT32[]":
                 a= "[I";
                 break;
+            case "BOOLEAN[]":
+                a= "[Z";
+                break;
             case "INT32":
                 a= "I";
                 break;
@@ -587,6 +590,9 @@ public class JasminGenerator {
                     break;
                 case "INT32[]":
                     code.append("[I");
+                    break;
+                case "BOOLEAN[]":
+                    code.append("[Z");
                     break;
                 default:
                     // Handle other types if needed
