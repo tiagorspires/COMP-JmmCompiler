@@ -60,11 +60,29 @@ public class JasminGenerator {
 
     private String generateUnaryOpInstruction (UnaryOpInstruction unaryOpInstruction){
         var code = new StringBuilder();
-        code.append("NOT YET IMPLEMENTED").append(NL);
+        code.append(generators.apply(unaryOpInstruction.getOperand()));
+        switch (unaryOpInstruction.getOperation().getOpType()){
+            case NOTB:
+                code.append("iconst_1").append(NL);
+                code.append("ixor").append(NL);
+                break;
+            case NEQ:
+                code.append("ineg").append(NL);
+                break;
+            case NOT:
+                code.append("iconst_1").append(NL);
+                code.append("ixor").append(NL);
+                break;
+            default:
+                code.append("Not yet implemented").append(unaryOpInstruction.getOperation().getOpType());
+                break;
+        }
+
         return code.toString();
     }
     private String generateSingleOpCond (SingleOpCondInstruction singleOpCondInstruction){
         var code = new StringBuilder();
+        code.append(singleOpCondInstruction.getLabel()).append(":").append(NL);
         return code.toString();
     }
 
@@ -76,8 +94,9 @@ public class JasminGenerator {
 
     private String generateOpCond(OpCondInstruction opCondInstruction){
         var code = new StringBuilder();
-        //code.append(generateLiteral((LiteralElement) opCondInstruction.getCondition().getOperands().get(0)));
-        //code.append(generateLiteral((LiteralElement) opCondInstruction.getCondition().getOperands().get(1)));
+        code.append(generators.apply(opCondInstruction.getCondition().getOperands().get(0)));
+        code.append(generators.apply(opCondInstruction.getCondition().getOperands().get(1)));
+
         switch (opCondInstruction.getCondition().getOperation().getOpType().toString()){
             case "LTH":
                 code.append("isub ").append(NL);
@@ -392,6 +411,8 @@ public class JasminGenerator {
                 break;
             case BOOLEAN:
                 storeInstruction.append("istore ").append(reg).append(NL);
+                storeInstruction.append("iload ").append(reg).append(NL);
+
                 break;
 
             case OBJECTREF:
@@ -556,6 +577,9 @@ public class JasminGenerator {
                     break;
                 case "OBJECTREF":
                     code.append("OBJ");
+                    break;
+                case "INT32[]":
+                    code.append("[I");
                     break;
                 default:
                     // Handle other types if needed
