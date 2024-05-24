@@ -300,7 +300,6 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 //                }
                 if(node.getChildren().size() > 2) {
                     computation.append(visit(node.getChild(i)).getCode());
-//                    System.out.println("ASDASDASDADSA:"+ table.getParameters(node.get("name")));
                 } else {
                     computation.append(childfunc.getCode());
                 }

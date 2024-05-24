@@ -61,7 +61,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
 
     private String visitAssignStmt(JmmNode node, Void unused) {
-        System.out.println(" nodeAssign:"+node);
+//        System.out.println(" nodeAssign:"+node);
 //        System.out.println(" Num Childs:"+node.getChild(0));
         StringBuilder code = new StringBuilder();
         String methodName = node.getAncestor(METHOD_DECL).map(method -> method.get("name")).orElseThrow();
