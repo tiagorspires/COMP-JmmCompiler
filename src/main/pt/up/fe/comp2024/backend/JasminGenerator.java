@@ -60,12 +60,28 @@ public class JasminGenerator {
 
     private String generateUnaryOpInstruction (UnaryOpInstruction unaryOpInstruction){
         var code = new StringBuilder();
-        code.append("NOT YET IMPLEMENTED").append(NL);
+        code.append(generators.apply(unaryOpInstruction.getOperand()));
+        switch (unaryOpInstruction.getOperation().getOpType()){
+            case NOTB:
+                code.append("iconst_1").append(NL);
+                code.append("ixor").append(NL);
+                break;
+            case NEQ:
+                code.append("ineg").append(NL);
+                break;
+            case NOT:
+                code.append("iconst_1").append(NL);
+                code.append("ixor").append(NL);
+                break;
+            default:
+                code.append("Not yet implemented").append(unaryOpInstruction.getOperation().getOpType());
+                break;
+        }
         return code.toString();
     }
     private String generateSingleOpCond (SingleOpCondInstruction singleOpCondInstruction){
         var code = new StringBuilder();
-        code.append("QUE CARALHO E SUPOSTO EU POR AQUI!!!!!!!!").append(NL);
+        code.append(singleOpCondInstruction.getLabel()).append(":").append(NL);
         return code.toString();
     }
 
@@ -77,29 +93,37 @@ public class JasminGenerator {
 
     private String generateOpCond(OpCondInstruction opCondInstruction){
         var code = new StringBuilder();
+        code.append(generators.apply(opCondInstruction.getCondition().getOperands().get(0)));
+        code.append(generators.apply(opCondInstruction.getCondition().getOperands().get(1)));
         //code.append(generateLiteral((LiteralElement) opCondInstruction.getCondition().getOperands().get(0)));
         //code.append(generateLiteral((LiteralElement) opCondInstruction.getCondition().getOperands().get(1)));
         switch (opCondInstruction.getCondition().getOperation().getOpType().toString()){
             case "LTH":
                 code.append("isub ").append(NL);
+                code.append("if_icmplt_").append(opCondInstruction.getLabel()).append(":").append(NL);
                 break;
             case "GTH":
                 code.append("iadd ").append(NL);
+                code.append("if_icmpgt_").append(opCondInstruction.getLabel()).append(":").append(NL);
                 break;
             case "EQ":
                 code.append("ieq ").append(NL);
+                code.append("if_icmpeq_").append(opCondInstruction.getLabel()).append(":").append(NL);
                 break;
             case "NEQ":
                 code.append("ine ").append(NL);
+                code.append("if_icmpne_").append(opCondInstruction.getLabel()).append(":").append(NL);
                 break;
             case "LTE":
                 code.append("isub ").append(NL);
+                code.append("if_icmple_").append(opCondInstruction.getLabel()).append(":").append(NL);
                 break;
             case "GTE":
                 code.append("iadd ").append(NL);
+                code.append("if_icmpge_").append(opCondInstruction.getLabel()).append(":").append(NL);
                 break;
-            case"ANDB":
-                code.append("iand ").append(NL);
+            default:
+                code.append("TYPE NOT YET IMPLEMENTED OPCI").append(NL);
                 break;
         }
         return code.toString();
@@ -149,7 +173,7 @@ public class JasminGenerator {
                     code.append("newarray ").append(arrayType).append(NL);
                 }else {
                     code.append("new ").append(((ClassType) callInstruction.getCaller().getType()).getName()).append(NL);
-                    code.append("dup").append(NL);
+                    //code.append("dup").append(NL);
                 }
                 return code.toString();
             case "invokevirtual":
@@ -345,14 +369,16 @@ public class JasminGenerator {
 
         code.append("\n.method ").append(modifier).append(mod).append(methodName).append("(").append(generateParam(method)).append(")").append(returnType).append(NL);
 
-        int maxStack = calculateMaxStackDepth(method);
+        int maxStack = calculateStackLimit(method);
         int maxLocals = calculateLocalVariables(method);
 
         // Add limits
         //code.append(TAB).append(".limit stack 99").append(NL);
+        //code.append(TAB).append(".limit locaLs 99").append(NL);
         code.append(TAB).append(".limit stack ").append(maxStack).append(NL);
         code.append(TAB).append(".limit locals ").append(maxLocals).append(NL);
-
+        //aload_0 if it's an intance methos just don't know how to check
+        //code.append(TAB).append("aload 0").append(NL);
 
         for (var inst : method.getInstructions()) {
             var instCode = StringLines.getLines(generators.apply(inst)).stream()
@@ -393,23 +419,15 @@ public class JasminGenerator {
                 break;
             case BOOLEAN:
                 storeInstruction.append("istore ").append(reg).append(NL);
+                storeInstruction.append("iload ").append(reg).append(NL);
                 break;
 
             case OBJECTREF:
-                storeInstruction.append("astore ").append(reg).append(NL);
-                storeInstruction.append("aload ").append(reg).append(NL);
-                break;
             case STRING:
-                storeInstruction.append("astore ").append(reg).append(NL);
-                storeInstruction.append("aload ").append(reg).append(NL);
-                break;
-
-            case THIS:
-                storeInstruction.append("aload ").append(reg).append(NL);
-                break;
             case ARRAYREF:
-                storeInstruction.append("astore ").append(reg).append(NL);
-                storeInstruction.append("aload ").append(reg).append(NL);
+                    storeInstruction.append("astore ").append(reg).append(NL);
+                    storeInstruction.append("aload ").append(reg).append(NL);
+            case THIS:
                 break;
             default:
                 storeInstruction.append("UNSUPPORTED TYPE ").append(elementType);
@@ -450,7 +468,7 @@ public class JasminGenerator {
             case "OBJECTREF":
                 return "aload " + reg + NL;
             case "THIS":
-                return "aload_0" + reg + NL;
+                return "aload_0" + NL;
             case "BOOLEAN":
             case "INT32":
                 return "iload " + reg + NL;
@@ -558,26 +576,65 @@ public class JasminGenerator {
                 case "OBJECTREF":
                     code.append("OBJ");
                     break;
+                case "INT32[]":
+                    code.append("[I");
+                    break;
                 default:
-                    // Handle other types if needed
+                    code.append("NOT YET IMPLEMENTED").append(param.getType()).append(NL);
                     break;
             }
         }
         return code.toString();
     }
-    private int calculateMaxStackDepth(Method method) {
+    private int calculateStackLimit(Method method) {
         int maxStack = 0;
         int currentStack = 0;
-        for (var inst : method.getInstructions()) {
-            if (inst instanceof BinaryOpInstruction) {
-                currentStack -= 1;
-            } else{
-                currentStack += 1;
+
+        for (var instruction : method.getInstructions()) {
+            switch (instruction.getInstType()) {
+                case ASSIGN:
+                    currentStack += 1;
+                    break;
+                case CALL:
+                    CallInstruction callInstruction = (CallInstruction) instruction;
+                    int argCount = callInstruction.getArguments().size();
+                    currentStack -= argCount; // Pops arguments
+                    if (callInstruction.getInvocationType().toString().equals("NEW")) {
+                        currentStack += 1;
+                    } else if (callInstruction.getReturnType() != null) {
+                        currentStack += 1;
+                    }
+                    break;
+                case GOTO:
+                    break;
+                case BRANCH:
+                    break;
+                case RETURN:
+                    break;
+                case PUTFIELD:
+                    currentStack -= 1;
+                    break;
+                case GETFIELD:
+                    currentStack += 1;
+                    break;
+                case UNARYOPER:
+                    break;
+                case BINARYOPER:
+                    currentStack -= 1;
+                    break;
+                case NOPER:
+                    break;
+                default:
+                    throw new NotImplementedException("Unsupported instruction type: " + instruction.getInstType());
             }
             if (currentStack > maxStack) {
                 maxStack = currentStack;
             }
+            if (currentStack < 0) {
+                currentStack = 0;
+            }
         }
+
         return maxStack;
     }
 
