@@ -12,6 +12,3 @@
 - Nuno Jorge da Costa Ramos - 27.5 %
 - Tiago Rocha Silveira Pires - 45 %
 
-## Self-Assessment 
-
-- We think our project deserves a 14 out of 20.
